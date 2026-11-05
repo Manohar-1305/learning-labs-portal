@@ -113,9 +113,8 @@
       .then(function (data) {
         if (
           data &&
-          (!data.success ||
-            String(data.user || "") === "" ||
-            data.session_id !== sessionId)
+          (!data.authenticated ||
+            String(data.user_id) !== uid)
         ) {
           goToLogin();
         }

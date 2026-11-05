@@ -1,3 +1,4 @@
+
 import json
 import logging
 import os
@@ -31,6 +32,7 @@ NETWORKS = {
     "ansible": "ansible-lab-network",
     "jenkins": "jenkins-lab-network",
     "bash": "bash-lab-network",
+    "linux": "linux-lab-network",
 }
 
 LABS = {
@@ -46,6 +48,12 @@ LABS = {
         "hosts": ["bash-server"],
         "network": NETWORKS["bash"],
     },
+    "linux": {
+        "hosts": ["linux-server"],
+        "network": NETWORKS["linux"],
+        "title": "Linux Server",
+        "description": "Linux hands-on practice environment",
+    },
 }
 
 app = Flask(
@@ -53,8 +61,7 @@ app = Flask(
     template_folder=str(TEMPLATES_DIR),
     static_folder=str(STATIC_DIR),
 )
-# No hardcoded fallback: if SECRET_KEY is not set, files/auth.py generates a
-# random key and stores it in .secret_key.
+
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY") or None
 
 socketio = SocketIO(
@@ -90,9 +97,6 @@ terminal_lock = threading.RLock()
 
 
 # --- Per-user isolation ----------------------------------------------------
-# Every user gets their own containers, Docker network, lab state, progress,
-# terminal sessions and socket room. Containers are named <base>-u<user_id>.
-
 
 def current_uid():
     return int(session["user_id"])
@@ -114,7 +118,7 @@ class LabContext:
 
     def base_name(self, real):
         if real.endswith(self.suffix):
-            return real[: -len(self.suffix)]
+            return real[:-len(self.suffix)]
         return real
 
     @property
@@ -144,6 +148,35 @@ def get_state(uid, slug):
         return lab_state.setdefault((uid, slug), new_state())
 
 
+def get_user_active_lab(uid):
+    """
+    Return the user's currently allocated lab.
+
+    An allocation remains active until the lab is destroyed or expires.
+    Stopping its containers does not release the allocation.
+    """
+    with lab_lock:
+        for slug in LABS:
+            state = lab_state.get((uid, slug))
+
+            if not state:
+                continue
+
+            if (
+                state["creating"]
+                or state["setup_running"]
+                or state["expires_at"] is not None
+            ):
+                return {
+                    "lab": slug,
+                    "expires_at": state["expires_at"],
+                    "creating": state["creating"],
+                    "setting_up": state["setup_running"],
+                }
+
+    return None
+
+
 terminal_sessions = {}
 socket_users = {}
 
@@ -171,7 +204,12 @@ def emit_to_user(uid, event, payload, sid=None):
         pass
 
 
-PROTECTED_PAGES = ("/ansible", "/jenkins", "/bash")
+PROTECTED_PAGES = (
+    "/ansible",
+    "/jenkins",
+    "/bash",
+    "/linux",
+)
 
 
 @app.before_request
@@ -197,9 +235,6 @@ def require_login_for_labs():
 
 # -------------------------------------------------------------------------
 
-# Each lab file registers its own creation script (and optional background
-# post-setup) here. create_lab() only runs the handler of the lab triggered.
-# Both functions receive a LabContext for the current user.
 LAB_HANDLERS = {}
 
 
@@ -211,14 +246,10 @@ def register_lab(slug, script_fn, post_setup=None):
 
 
 # --- Progress tracking ---------------------------------------------------
-# Documents are ordered by file name (use 01-, 02-, ... prefixes). A document
-# is "completed", "current" (the first incomplete one) or "locked".
-# Optional automated test: documents/<same-name>.check.sh is executed inside
-# the lab's controller container; exit code 0 completes the document.
-# Without a .check.sh file the document is completed manually.
-# Progress is stored per user: {"<user_id>": {"<lab>": [documents]}}.
+
 PROGRESS_FILE = BASE_DIR / "progress.json"
 DOCUMENT_SUFFIXES = {".md", ".txt", ".html"}
+
 CHECK_CONTAINERS = {
     "ansible": "ansible-controller",
 }
@@ -437,16 +468,12 @@ def ansible_header(ctx):
 
 
 def ensure_ansible_setup(ctx):
-    # Containers are named per user, but each user's private network gives
-    # them the aliases "ansible-controller" and "ansible-client", so the
-    # inventory below works unchanged.
     script = ansible_header(ctx) + r"""set -Eeuo pipefail
 export DEBIAN_FRONTEND=noninteractive
 
 docker network inspect "$NETWORK" >/dev/null 2>&1 || \
     docker network create "$NETWORK" >/dev/null
 
-# Reuse existing containers. Never remove and recreate them during setup.
 if ! docker container inspect "$CONTROLLER" >/dev/null 2>&1; then
     docker run -d \
         --name "$CONTROLLER" \
@@ -469,7 +496,6 @@ fi
 
 docker start "$CONTROLLER" "$CLIENT" >/dev/null
 
-# Install controller and client packages in parallel to cut setup time.
 docker exec "$CONTROLLER" bash -lc '
     set -Eeuo pipefail
     export DEBIAN_FRONTEND=noninteractive
@@ -496,7 +522,6 @@ docker exec "$CLIENT" bash -lc '
     mkdir -p /run/sshd
     ssh-keygen -A
 
-    # Ensure cloud-init defaults do not override the required SSH settings.
     mkdir -p /etc/ssh/sshd_config.d
     cat > /etc/ssh/sshd_config.d/00-ansible-lab.conf <<EOF
 PermitRootLogin yes
@@ -516,7 +541,6 @@ client_pid=$!
 wait "$controller_pid"
 wait "$client_pid"
 
-# Start sshd automatically whenever the client container starts.
 docker exec "$CLIENT" bash -lc '
     set -Eeuo pipefail
     mkdir -p /run/sshd
@@ -525,7 +549,6 @@ docker exec "$CLIENT" bash -lc '
     fi
 '
 
-# Ensure the controller has a persistent SSH key.
 docker exec "$CONTROLLER" bash -lc '
     set -Eeuo pipefail
     mkdir -p /root/.ssh
@@ -536,7 +559,6 @@ docker exec "$CONTROLLER" bash -lc '
     fi
 '
 
-# Write the requested inventory and configuration automatically.
 docker exec -i "$CONTROLLER" bash -lc \
     'mkdir -p /etc/ansible && cat > /etc/ansible/hosts' <<'EOF'
 [clients]
@@ -558,7 +580,6 @@ EOF
 docker exec "$CONTROLLER" chmod 644 \
     /etc/ansible/hosts /etc/ansible/ansible.cfg
 
-# Wait briefly for SSH; do not wait for the previous 120-second maximum.
 ssh_ready=false
 
 for i in $(seq 1 15); do
@@ -579,8 +600,6 @@ if [ "$ssh_ready" != true ]; then
     sleep 1
 fi
 
-# Install the controller's public key on the client if passwordless SSH
-# has not already been configured.
 if ! docker exec "$CONTROLLER" bash -lc \
     'timeout 3 ssh -o BatchMode=yes -o ConnectTimeout=2 \
      -o StrictHostKeyChecking=no root@ansible-client true' \
@@ -598,7 +617,6 @@ if ! docker exec "$CONTROLLER" bash -lc \
     '
 fi
 
-# Run the exact inventory and connectivity checks automatically.
 docker exec "$CONTROLLER" bash -lc '
     set -Eeuo pipefail
     export ANSIBLE_CONFIG=/etc/ansible/ansible.cfg
@@ -624,8 +642,6 @@ command -v docker >/dev/null 2>&1 || {
 docker network inspect "$NETWORK" >/dev/null 2>&1 || \
     docker network create "$NETWORK" >/dev/null
 
-# Keep existing containers and their installed packages.
-# Only create a container if it does not exist.
 if ! docker container inspect "$CONTROLLER" >/dev/null 2>&1; then
     docker run -d \
         --name "$CONTROLLER" \
@@ -708,6 +724,7 @@ def lab_status(slug):
         remaining = max(0, int(state["expires_at"] - time.time()))
 
     all_running = all(containers[name]["running"] for name in bases)
+    active_lab = get_user_active_lab(uid)
 
     return {
         "success": True,
@@ -727,12 +744,11 @@ def lab_status(slug):
         "remaining_seconds": remaining,
         "last_error": state["last_error"],
         "web_port": ctx.web_port if slug == "jenkins" else None,
+        "active_lab": active_lab["lab"] if active_lab else None,
     }
 
 
 def run_post_setup(slug, uid, post_setup):
-    # Slow package/config work runs here, after the lab was already reported
-    # as created. Silent: no extra logs, errors only go to last_error.
     success = True
     message = f"{slug.capitalize()} lab is ready."
     state = get_state(uid, slug)
@@ -840,7 +856,6 @@ def create_lab(slug, uid, sid=None, already_marked=False):
             return {"success": False, "error": message}
 
         now = time.time()
-
         post_setup = LAB_HANDLERS[slug].get("post_setup")
 
         with lab_lock:
@@ -848,8 +863,6 @@ def create_lab(slug, uid, sid=None, already_marked=False):
             state["expires_at"] = now + LAB_DURATION_SECONDS
             state["last_error"] = None
 
-            # Mark setup as running before reporting completion so the UI
-            # never sees a "running but not ready" gap.
             if post_setup is not None:
                 state["setup_running"] = True
 
@@ -921,8 +934,8 @@ def destroy_lab(slug, uid, expired=False):
         state["expires_at"] = None
         state["last_error"] = None
         state["setup_running"] = False
+        state["creating"] = False
 
-    # Lab data is gone after destroy/expiry, so progress starts over.
     reset_progress(uid, slug)
 
     with terminal_lock:
@@ -1002,15 +1015,50 @@ def start_lab_creation(slug):
     payload = request.get_json(silent=True) or {}
     sid = payload.get("sid")
     uid = current_uid()
-    state = get_state(uid, slug)
 
     with lab_lock:
+        active = get_user_active_lab(uid)
+
+        if active:
+            active_slug = active["lab"]
+            active_state = get_state(uid, active_slug)
+
+            if active_slug == slug:
+                message = (
+                    f"Your {active_slug.capitalize()} lab is already "
+                    "running or being created."
+                )
+            else:
+                message = (
+                    f"Your {active_slug.capitalize()} lab is already "
+                    "running. Delete that lab or wait for its one-hour "
+                    "session to expire before creating another lab."
+                )
+
+            remaining = None
+
+            if active_state["expires_at"] is not None:
+                remaining = max(
+                    0,
+                    int(active_state["expires_at"] - time.time()),
+                )
+
+            return jsonify({
+                "success": False,
+                "error": message,
+                "active_lab": active_slug,
+                "remaining_seconds": remaining,
+            }), 409
+
+        state = get_state(uid, slug)
+
         if state["creating"]:
             return jsonify({
                 "success": False,
                 "error": "Lab creation is already in progress.",
             }), 409
 
+        # Reserve this user's lab allocation before starting the thread.
         state["creating"] = True
 
     threading.Thread(
@@ -1043,15 +1091,16 @@ def stop_lab(slug):
             or "Unable to stop lab.",
         }), 500
 
-    state = get_state(uid, slug)
-
-    with lab_lock:
-        state["created_at"] = None
-        state["expires_at"] = None
+    # Do not clear expires_at here. Stopping is not destroying.
+    # The user keeps this allocation until deletion or expiry.
 
     return jsonify({
         "success": True,
-        "message": f"{slug.capitalize()} lab stopped.",
+        "message": (
+            f"{slug.capitalize()} lab stopped. "
+            "Your lab allocation remains reserved until it is deleted "
+            "or its one-hour session expires."
+        ),
     })
 
 
@@ -1192,7 +1241,6 @@ def get_terminal_session(session_id):
     return None
 
 
-# Ansible lab: creation script + background setup registered here.
 register_lab(
     "ansible",
     ansible_creation_script,
@@ -1303,7 +1351,6 @@ def ansible_terminal_open():
 
 
 # --- Progress tracking routes ---------------------------------------------
-
 
 @app.get("/api/ansible/progress")
 def ansible_progress():
@@ -1503,7 +1550,6 @@ def terminal_close(session_id):
 def get_documents():
     documents = []
 
-    # Progress tracking: locked documents never send their real content.
     statuses = document_statuses(current_uid(), "ansible")
 
     if DOCUMENTS_DIR.exists():

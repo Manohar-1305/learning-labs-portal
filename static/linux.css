@@ -1,0 +1,846 @@
+:root {
+  --bash-bg: #10151d;
+  --bash-panel: #1b2431;
+  --bash-panel-light: #222e3d;
+  --bash-border: #354357;
+  --bash-text: #e5edf7;
+  --bash-muted: #94a3b8;
+  --bash-green: #84cc16;
+  --bash-blue: #38bdf8;
+  --bash-navy: #071b3a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bash-bg);
+  color: var(--bash-text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+select,
+a {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Header */
+
+.page-header {
+  width: 100%;
+  background: var(--bash-panel);
+  border-bottom: 1px solid var(--bash-border);
+}
+
+.topbar {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 24px;
+}
+
+.home-btn,
+.logout-btn {
+  color: var(--bash-text);
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid var(--bash-border);
+  border-radius: 6px;
+  background: var(--bash-panel-light);
+  white-space: nowrap;
+}
+
+.home-btn:hover,
+.logout-btn:hover {
+  background: #2d3b4e;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+}
+
+.brand-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bash-green);
+  color: #10151d;
+  font-size: 24px;
+  font-weight: 800;
+  border-radius: 9px;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--bash-text);
+}
+
+.brand p {
+  margin: 4px 0 0;
+  color: var(--bash-muted);
+  font-size: 13px;
+}
+
+.top-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.nav-item {
+  padding: 10px 16px;
+  color: var(--bash-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+.nav-item:hover {
+  background: var(--bash-panel-light);
+  border-color: var(--bash-border);
+}
+
+.host-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logged-in-user {
+  color: var(--bash-muted);
+  font-size: 13px;
+}
+
+.host-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-pill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-pill.connected {
+  color: #bef264;
+  background: rgba(132, 204, 22, 0.14);
+  border: 1px solid rgba(132, 204, 22, 0.35);
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  color: var(--bash-text);
+  background: var(--bash-panel-light);
+  border: 1px solid var(--bash-border);
+  border-radius: 6px;
+  font-size: 22px;
+}
+
+.top-disclaimer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  color: #fef3c7;
+  background: #422006;
+  border-top: 1px solid #713f12;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.top-disclaimer strong {
+  color: #fbbf24;
+  white-space: nowrap;
+}
+
+/* Top controls */
+
+.top-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 24px;
+  background: var(--bash-bg);
+  border-bottom: 1px solid var(--bash-border);
+}
+
+.host-selector {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.controls-title {
+  color: var(--bash-muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.host-selector-list {
+  display: flex;
+  gap: 10px;
+}
+
+.host-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  color: var(--bash-text);
+  background: #3b171b;
+  border: 1px solid #dc2626;
+  border-radius: 7px;
+  text-align: left;
+}
+
+.host-item.selected {
+  border-color: #dc2626;
+  background: #3b171b;
+}
+
+.host-item.running,
+.host-item.running.selected {
+  border-color: var(--bash-green);
+  background: #263421;
+}
+
+.host-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+.host-item.running .host-dot {
+  background: var(--bash-green);
+}
+
+.host-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.host-label strong {
+  font-size: 13px;
+}
+
+.host-label small {
+  color: var(--bash-muted);
+  font-size: 11px;
+}
+
+.cluster-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.button {
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.button.primary {
+  color: #142000;
+  background: var(--bash-green);
+}
+
+.button.primary:hover {
+  background: #a3e635;
+}
+
+.button.secondary {
+  color: var(--bash-text);
+  background: var(--bash-panel-light);
+  border-color: var(--bash-border);
+}
+
+.button.secondary:hover {
+  background: #2d3b4e;
+}
+
+.button.danger {
+  color: #fecaca;
+  background: #451a1a;
+  border-color: #7f1d1d;
+}
+
+.button.danger:hover {
+  background: #7f1d1d;
+}
+
+.timer-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 115px;
+  padding: 8px 12px;
+  background: var(--bash-panel);
+  border: 1px solid var(--bash-border);
+  border-radius: 6px;
+}
+
+.timer-card span {
+  color: var(--bash-muted);
+  font-size: 10px;
+  letter-spacing: 0.8px;
+}
+
+.timer-card strong {
+  color: var(--bash-green);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Environment heading */
+
+.environment-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 112px;
+  padding: 20px 24px;
+  background: var(--bash-navy);
+  border-bottom: 1px solid var(--bash-border);
+}
+
+.eyebrow {
+  margin-bottom: 7px;
+  color: var(--bash-blue);
+  font-family: "Brush Script MT", "Segoe Script", cursive;
+  font-size: 19px;
+  font-style: italic;
+}
+
+.environment-heading h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 25px;
+}
+
+.environment-heading p {
+  margin: 6px 0 0;
+  color: #b8c7dc;
+  font-size: 13px;
+}
+
+/* Workspace */
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 620px;
+  height: 75vh;
+  max-height: 1000px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bash-panel);
+  border: 1px solid var(--bash-border);
+  border-radius: 9px;
+}
+
+.terminal-section {
+  grid-column: 1;
+}
+
+.documents-panel {
+  grid-column: 3;
+  display: flex;
+  visibility: visible;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 68px;
+  padding: 12px 16px;
+  background: var(--bash-panel-light);
+  border-bottom: 1px solid var(--bash-border);
+}
+
+.section-heading h3 {
+  margin: 0;
+  color: var(--bash-text);
+  font-size: 16px;
+}
+
+.section-heading p {
+  margin: 5px 0 0;
+  color: var(--bash-muted);
+  font-size: 12px;
+}
+
+.panel-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.terminal-state {
+  color: var(--bash-muted);
+  font-size: 12px;
+}
+
+.panel-tool-button {
+  width: 34px;
+  height: 34px;
+  color: var(--bash-text);
+  background: transparent;
+  border: 1px solid var(--bash-border);
+  border-radius: 5px;
+  font-size: 19px;
+}
+
+.panel-tool-button:hover {
+  background: #354357;
+}
+
+.terminal {
+  flex: 1;
+  min-height: 0;
+  padding: 10px;
+  overflow: hidden;
+  background: #080d14;
+}
+
+/* Horizontal splitter */
+
+.horizontal-splitter {
+  grid-column: 2;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  min-width: 16px;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  cursor: col-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.horizontal-splitter::before {
+  content: "";
+  position: absolute;
+  inset: 0 -5px;
+  cursor: col-resize;
+}
+
+.horizontal-splitter span {
+  position: relative;
+  z-index: 1;
+  width: 4px;
+  height: 48px;
+  background: var(--bash-border);
+  border-radius: 5px;
+  pointer-events: none;
+  transition: background 0.15s ease;
+}
+
+.horizontal-splitter:hover span,
+.horizontal-splitter:focus span,
+.horizontal-splitter:active span {
+  background: var(--bash-blue);
+}
+
+/* Vertical splitter */
+
+.vertical-splitter {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 12px;
+  cursor: row-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.vertical-splitter span {
+  width: 48px;
+  height: 4px;
+  background: var(--bash-border);
+  border-radius: 5px;
+  transition: background 0.15s ease;
+}
+
+.vertical-splitter:hover span,
+.vertical-splitter:focus span {
+  background: var(--bash-blue);
+}
+
+/* Progress */
+
+.bash-progress {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bash-panel);
+  border-bottom: 1px solid var(--bash-border);
+}
+
+.progress-topbar-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.progress-topbar-heading strong {
+  margin-right: auto;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.progress-topbar-heading span {
+  color: var(--bash-muted);
+  font-size: 12px;
+}
+
+.progress-topbar-heading #progressPercent {
+  color: var(--bash-green);
+  font-weight: 700;
+}
+
+.progress-track {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  background: #0b111a;
+  border-radius: 10px;
+}
+
+.progress-fill {
+  width: 0;
+  height: 100%;
+  background: var(--bash-green);
+  border-radius: 10px;
+  transition: width 0.25s ease;
+}
+
+.progress-list {
+  display: none;
+}
+
+.progress-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.progress-message {
+  margin-top: 8px;
+  color: var(--bash-muted);
+  font-size: 12px;
+}
+
+/* Documents */
+
+.document-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bash-panel);
+  border-bottom: 1px solid var(--bash-border);
+}
+
+.document-actions select {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  color: var(--bash-text);
+  background: #101923;
+  border: 1px solid var(--bash-border);
+  border-radius: 6px;
+  outline: none;
+}
+
+.document-actions select:focus {
+  border-color: var(--bash-blue);
+}
+
+.document-content {
+  display: block;
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 18px;
+  overflow: auto;
+  color: var(--bash-text);
+  background: var(--bash-panel);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* Ensure loaded document content fills the available panel */
+
+.document-content iframe {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100%;
+  min-height: 500px;
+  border: none;
+  background: var(--bash-panel);
+}
+
+.document-content object,
+.document-content embed {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 500px;
+  border: none;
+}
+
+.document-content > div,
+.document-content > article,
+.document-content > section {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.document-content h1,
+.document-content h2,
+.document-content h3,
+.document-content h4 {
+  color: #ffffff;
+}
+
+.document-content p,
+.document-content li {
+  color: #cbd5e1;
+}
+
+.document-content code {
+  padding: 2px 5px;
+  color: #bef264;
+  background: #0b111a;
+  border-radius: 4px;
+}
+
+.document-content pre {
+  padding: 14px;
+  overflow-x: auto;
+  color: #d1fae5;
+  background: #080d14;
+  border: 1px solid var(--bash-border);
+  border-radius: 7px;
+}
+
+.document-content pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.document-content a {
+  color: var(--bash-blue);
+}
+
+/* Maximized panels */
+
+.workspace.terminal-maximized {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace.terminal-maximized .terminal-section {
+  grid-column: 1;
+}
+
+.workspace.terminal-maximized .documents-panel,
+.workspace.terminal-maximized .horizontal-splitter {
+  display: none;
+}
+
+.workspace.documents-maximized {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.workspace.documents-maximized .documents-panel {
+  grid-column: 1;
+}
+
+.workspace.documents-maximized .terminal-section,
+.workspace.documents-maximized .horizontal-splitter {
+  display: none;
+}
+
+/* Responsive layout */
+
+@media (max-width: 1100px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .top-navigation {
+    margin-left: 0;
+  }
+
+  .host-info {
+    margin-left: auto;
+  }
+
+  .top-controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cluster-controls {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 850px) {
+  .workspace {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    max-height: none;
+  }
+
+  .terminal-section,
+  .documents-panel {
+    min-height: 500px;
+  }
+
+  .horizontal-splitter {
+    display: none;
+  }
+
+  .vertical-splitter {
+    display: none;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .top-navigation,
+  .host-info {
+    margin-left: 0;
+  }
+
+  .top-disclaimer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .environment-heading {
+    min-height: 100px;
+  }
+}
+
+@media (max-width: 550px) {
+  .topbar,
+  .top-controls,
+  .environment-heading {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .host-selector {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cluster-controls {
+    width: 100%;
+  }
+
+  .cluster-controls .button {
+    flex: 1;
+  }
+
+  .timer-card {
+    width: 100%;
+  }
+
+  .host-info {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .progress-topbar-heading {
+    flex-wrap: wrap;
+  }
+}
+/* Hide terminal scrollbar completely */
+.terminal,
+.terminal .xterm-viewport {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.terminal::-webkit-scrollbar,
+.terminal .xterm-viewport::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.terminal {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.terminal .xterm {
+  width: 100%;
+}
+
+.terminal .xterm-screen {
+  width: 100%;
+}

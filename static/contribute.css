@@ -1,0 +1,608 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #7778ed;
+    --primary-hover: #6263d5;
+    --text: #202124;
+    --muted: #687386;
+    --border: #e2e7ef;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #ffffff !important;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+}
+
+.labs-page {
+    width: min(100% - 40px, 1000px);
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 32px 0 60px;
+    background: #ffffff !important;
+}
+
+/* Navigation */
+
+.home-nav {
+    min-height: 58px;
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    background: #ffffff !important;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+}
+
+.site-brand {
+    color: var(--text);
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 13px;
+}
+
+.user-welcome {
+    color: #566174;
+    font-size: 12px;
+}
+
+.user-welcome strong {
+    color: #202124;
+    font-weight: 700;
+}
+
+.logout-btn {
+    min-height: 38px;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #dc2626 !important;
+    border: 1px solid #dc2626;
+    border-radius: 24px;
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: #b91c1c !important;
+}
+
+.login-btn {
+    min-height: 38px;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    border-radius: 24px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* Heading */
+
+.labs-heading {
+    max-width: 700px;
+    margin: 48px 0 30px;
+}
+
+.section-eyebrow {
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.7px;
+}
+
+.labs-heading h1 {
+    margin: 10px 0 13px;
+    color: #202124;
+    font-size: clamp(30px, 4vw, 38px);
+    font-weight: 800;
+    letter-spacing: -1.2px;
+}
+
+.labs-heading p {
+    margin: 0;
+    color: #626d7e;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+/* Contribution card */
+
+.contribute-card {
+    max-width: 650px;
+    padding: 28px;
+    background: linear-gradient(145deg, #ffffff, #f8f9ff) !important;
+    border: 1px solid #e2e6f0;
+    border-radius: 16px;
+    box-shadow: 0 10px 32px rgba(40, 50, 100, 0.065);
+}
+
+.contribute-intro {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 26px;
+}
+
+.contribute-icon {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #eeeeff;
+    border-radius: 13px;
+    color: var(--primary);
+    font-size: 24px;
+}
+
+.contribute-intro h2 {
+    margin: 0 0 5px;
+    color: #202124;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.contribute-intro p {
+    margin: 0;
+    color: #748094;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.contribute-card h3 {
+    margin: 0 0 15px;
+    color: #202124;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+/* Amount selection */
+
+.amount-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.amount-chip {
+    min-width: 55px;
+    min-height: 40px;
+    padding: 0 15px;
+    background: #ffffff;
+    border: 1px solid #dce1eb;
+    border-radius: 9px;
+    color: #303846;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.amount-chip:hover {
+    border-color: var(--primary);
+    background: #f5f5ff;
+    transform: translateY(-2px);
+}
+
+.amount-chip.active {
+    border-color: var(--primary);
+    background: #eeeeff;
+    color: #5556ce;
+}
+
+/* Custom amount */
+
+.custom-amount {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.custom-amount label {
+    color: #566174;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.custom-amount input {
+    width: 100%;
+    min-height: 45px;
+    padding: 0 14px;
+    background: #ffffff;
+    border: 1px solid #dce1eb;
+    border-radius: 9px;
+    outline: none;
+    color: #202124;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.custom-amount input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(119, 120, 237, 0.1);
+}
+
+/* Pay button */
+
+.pay-btn {
+    min-height: 45px;
+    padding: 0 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--primary);
+    border: none;
+    border-radius: 25px;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 5px 14px rgba(119, 120, 237, 0.2);
+    transition: all 0.2s ease;
+}
+
+.pay-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+/* UPI details */
+
+.upi-id-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 17px;
+    padding-top: 15px;
+    border-top: 1px solid #e8ebf2;
+    color: #778194;
+    font-size: 11px;
+}
+
+.upi-id-row code {
+    color: #303846;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.copy-btn {
+    min-height: 30px;
+    padding: 0 12px;
+    background: #f3f4f7;
+    border: 1px solid #dce1e8;
+    border-radius: 6px;
+    color: #303846;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.copy-btn:hover {
+    background: #e9ecf2;
+}
+
+.secure-note {
+    margin: 14px 0 0;
+    color: #8993a3;
+    font-size: 10px;
+}
+
+/* Payment dialog */
+
+.qr-dialog {
+    position: fixed;
+    inset: 0;
+    width: min(540px, calc(100% - 30px));
+    max-width: 540px;
+    max-height: calc(100vh - 32px);
+    margin: auto;
+    padding: 30px;
+    overflow-y: auto;
+    background: #ffffff !important;
+    border: 1px solid #e3e6ed;
+    border-radius: 15px;
+    color: #202124;
+    box-shadow: 0 22px 65px rgba(0, 0, 0, 0.22);
+}
+
+.qr-dialog[open] {
+    display: block;
+}
+
+.qr-dialog::backdrop {
+    background: rgba(20, 25, 40, 0.48);
+}
+
+.qr-dialog-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.qr-dialog-close {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f4f5f8;
+    border: none;
+    border-radius: 50%;
+    color: #515b6a;
+    font-size: 23px;
+    cursor: pointer;
+}
+
+.qr-dialog-close:hover {
+    background: #e8eaf0;
+}
+
+.payment-eyebrow {
+    margin-bottom: 9px;
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.7px;
+}
+
+.qr-dialog-content h2 {
+    margin: 0 0 9px;
+    color: #202124;
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.qr-amount-label {
+    margin: 0;
+    color: #778194;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Payment application icons */
+
+.payment-apps {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 23px;
+    margin: 24px 0 20px;
+}
+
+.payment-app {
+    min-width: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+}
+
+.payment-app img,
+.payment-app .app-fallback {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.payment-app .app-fallback {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.google-pay .app-fallback { background: #4285f4; }
+.phonepe .app-fallback { background: #5f259f; }
+.paytm .app-fallback { background: #00baf2; }
+.bhim .app-fallback { background: #008c44; }
+.amazon-pay .app-fallback { background: #232f3e; }
+
+.payment-app small {
+    color: #657083;
+    font-size: 9px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Centered QR code */
+
+.qr-box {
+    width: 100%;
+    min-height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid #e5e8ee;
+    border-radius: 10px;
+}
+
+.qr-box img {
+    display: block;
+    width: 240px;
+    height: 240px;
+    max-width: 100%;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+/* Recipient and UPI ID */
+
+.qr-payee {
+    width: 100%;
+    margin: 14px 0 5px;
+    color: #303846;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.qr-upi-details {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin: 7px 0 17px;
+    color: #8490a0;
+    font-size: 10px;
+}
+
+.qr-upi-details strong {
+    color: #303846;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Dialog action buttons */
+
+.qr-actions {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 11px;
+}
+
+.qr-open {
+    min-height: 40px;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    border-radius: 25px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.qr-open:hover {
+    background: var(--primary-hover);
+}
+
+.qr-hint {
+    max-width: 420px;
+    margin: 16px auto 0;
+    color: #7c8797;
+    font-size: 10px;
+    line-height: 1.7;
+    text-align: center;
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+    .labs-page {
+        width: calc(100% - 28px);
+        padding-top: 16px;
+    }
+
+    .home-nav {
+        padding: 12px;
+        flex-wrap: wrap;
+    }
+
+    .nav-actions {
+        gap: 9px;
+    }
+
+    .user-welcome {
+        font-size: 11px;
+    }
+
+    .labs-heading {
+        margin-top: 32px;
+    }
+
+    .labs-heading h1 {
+        font-size: 29px;
+    }
+
+    .contribute-card {
+        padding: 20px;
+    }
+
+    .qr-dialog {
+        padding: 25px 16px;
+        max-height: calc(100vh - 24px);
+    }
+
+    .payment-apps {
+        gap: 14px;
+        margin: 19px 0;
+    }
+
+    .payment-app {
+        min-width: 42px;
+    }
+
+    .payment-app img,
+    .payment-app .app-fallback {
+        width: 30px;
+        height: 30px;
+    }
+
+    .payment-app small {
+        font-size: 8px;
+    }
+
+    .qr-box {
+        min-height: 235px;
+        padding: 10px;
+    }
+
+    .qr-box img {
+        width: 210px;
+        height: 210px;
+    }
+}
+

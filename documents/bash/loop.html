@@ -1,0 +1,173 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bash Loops</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #cbd5e1;
+        padding: 20px;
+        max-width: 900px;
+        margin: auto;
+      }
+
+      h1 {
+        color: #84cc16;
+      }
+
+      h2 {
+        color: #f59e0b;
+      }
+
+      h3 {
+        color: #38bdf8;
+      }
+
+      p,
+      li {
+        color: #cbd5e1;
+      }
+
+      code {
+        color: #bef264;
+      }
+
+      pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 14px;
+        border-radius: 8px;
+        overflow-x: auto;
+      }
+
+      pre code {
+        color: #e2e8f0;
+      }
+
+      .note {
+        background: #e3f2fd;
+        color: #263238;
+        padding: 12px;
+        border-left: 4px solid #1976d2;
+      }
+
+      .note strong {
+        color: #1565c0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Bash Loops</h1>
+
+    <p>
+      Loops are used to execute a block of commands repeatedly. Bash provides
+      different types of loops. Let's learn the basics.
+    </p>
+
+    <h2>1. For Loop</h2>
+
+    <p>A <code>for</code> loop executes commands for each item in a list.</p>
+
+    <pre><code>#!/bin/bash
+
+for name in Linux Docker Kubernetes
+do
+    echo "Learning $name"
+done</code></pre>
+
+    <h3>Output</h3>
+
+    <pre><code>Learning Linux
+Learning Docker
+Learning Kubernetes</code></pre>
+
+    <h2>2. While Loop</h2>
+
+    <p>
+      A <code>while</code> loop executes commands as long as the condition is
+      true.
+    </p>
+
+    <pre><code>#!/bin/bash
+
+count=1
+
+while [ $count -le 5 ]
+do
+    echo "Count: $count"
+    count=$((count + 1))
+done</code></pre>
+
+    <h3>Output</h3>
+
+    <pre><code>Count: 1
+Count: 2
+Count: 3
+Count: 4
+Count: 5</code></pre>
+
+    <h2>3. Until Loop</h2>
+
+    <p>
+      An <code>until</code> loop executes commands until the condition becomes
+      true.
+    </p>
+
+    <pre><code>#!/bin/bash
+
+count=1
+
+until [ $count -gt 5 ]
+do
+    echo "Count: $count"
+    count=$((count + 1))
+done</code></pre>
+
+    <h2>4. Break and Continue</h2>
+
+    <p>
+      <code>break</code> stops the loop. <code>continue</code> skips the current
+      iteration.
+    </p>
+
+    <pre><code>#!/bin/bash
+
+for number in 1 2 3 4 5
+do
+    if [ $number -eq 3 ]
+    then
+        continue
+    fi
+
+    echo "$number"
+done</code></pre>
+
+    <h3>Output</h3>
+
+    <pre><code>1
+2
+4
+5</code></pre>
+
+    <h2>5. Practical Exercise</h2>
+
+    <ol>
+      <li>Print numbers from 1 to 10 using a for loop.</li>
+      <li>Print numbers from 1 to 5 using a while loop.</li>
+      <li>Print the names of five Linux commands using a for loop.</li>
+      <li>Use break to stop a loop when the number reaches 4.</li>
+    </ol>
+
+    <div class="note">
+      <strong>Important:</strong> Always ensure that the loop condition
+      eventually becomes false. Otherwise, you may create an infinite loop.
+    </div>
+  </body>
+</html>
+

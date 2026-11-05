@@ -1,0 +1,433 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jenkins - Create Your First Job</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+            color: #263445;
+            background: #ffffff;
+        }
+
+        .document {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        h1, h2, h3 {
+            color: #172b4d;
+        }
+
+        h1 {
+            border-bottom: 3px solid #d33833;
+            padding-bottom: 12px;
+        }
+
+        h2 {
+            margin-top: 35px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 8px;
+        }
+
+        p {
+            margin: 12px 0;
+        }
+
+        code {
+            background: #f1f3f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #c0392b;
+        }
+
+        pre {
+            background: #101827;
+            color: #e5edf7;
+            padding: 18px;
+            border-radius: 7px;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .info {
+            background: #eef5ff;
+            border-left: 4px solid #2878d0;
+            padding: 14px 18px;
+            margin: 20px 0;
+        }
+
+        .warning {
+            background: #fff5e5;
+            border-left: 4px solid #e39b20;
+            padding: 14px 18px;
+            margin: 20px 0;
+        }
+
+        .step {
+            margin: 25px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #d33833;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+        }
+
+        th, td {
+            border: 1px solid #dfe3e8;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f3f5f8;
+        }
+
+        .checklist li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="document">
+
+    <h1>Jenkins: Create Your First Job</h1>
+
+    <p>
+        In this practical exercise, you will create your first Jenkins
+        Freestyle project, configure a build step, execute the job,
+        and inspect the build console output.
+    </p>
+
+    <div class="info">
+        <strong>Prerequisites:</strong>
+        <ul>
+            <li>Jenkins server must be running.</li>
+            <li>You must be logged in to Jenkins.</li>
+            <li>You must have Jenkins administrator or job creation permissions.</li>
+        </ul>
+    </div>
+
+    <h2>1. Understanding Jenkins Jobs</h2>
+
+    <p>
+        A Jenkins job is a configured task that Jenkins executes.
+        It can compile code, run tests, build Docker images,
+        deploy applications, or execute shell scripts.
+    </p>
+
+    <p>Common Jenkins job types include:</p>
+
+    <table>
+        <tr>
+            <th>Job Type</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td>Freestyle Project</td>
+            <td>Configure builds using a graphical interface.</td>
+        </tr>
+        <tr>
+            <td>Pipeline</td>
+            <td>Define CI/CD workflows using a Jenkinsfile.</td>
+        </tr>
+        <tr>
+            <td>Multibranch Pipeline</td>
+            <td>Automatically discover and build branches containing Jenkinsfiles.</td>
+        </tr>
+        <tr>
+            <td>Folder</td>
+            <td>Organize Jenkins jobs into folders.</td>
+        </tr>
+    </table>
+
+    <h2>2. Open Jenkins Dashboard</h2>
+
+    <div class="step">
+        <span class="step-number">Step 1</span>
+        Open your Jenkins URL in a browser.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 2</span>
+        Log in using your Jenkins administrator credentials.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 3</span>
+        You should see the Jenkins Dashboard.
+    </div>
+
+    <h2>3. Create Your First Freestyle Job</h2>
+
+    <div class="step">
+        <span class="step-number">Step 1</span>
+        Click <strong>New Item</strong> on the Jenkins dashboard.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 2</span>
+        Enter the following job name:
+        <pre><code>first-jenkins-job</code></pre>
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 3</span>
+        Select <strong>Freestyle project</strong>.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 4</span>
+        Click <strong>OK</strong>.
+    </div>
+
+    <div class="info">
+        Jenkins will open the configuration page for your new job.
+    </div>
+
+    <h2>4. Configure General Settings</h2>
+
+    <p>
+        In the General section, enter a description:
+    </p>
+
+    <pre><code>My first Jenkins job for learning CI/CD automation.</code></pre>
+
+    <p>
+        Leave the remaining settings at their defaults for this exercise.
+    </p>
+
+    <h2>5. Configure Build Steps</h2>
+
+    <p>
+        Scroll down to the <strong>Build Steps</strong> section.
+    </p>
+
+    <div class="step">
+        <span class="step-number">Step 1</span>
+        Click <strong>Add build step</strong>.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 2</span>
+        Select <strong>Execute shell</strong>.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 3</span>
+        Enter the following shell commands:
+    </div>
+
+    <pre><code>#!/bin/bash
+
+echo "================================="
+echo "Welcome to Jenkins"
+echo "================================="
+
+echo "Job Name: $JOB_NAME"
+echo "Build Number: $BUILD_NUMBER"
+
+echo "Checking system information..."
+
+hostname
+date
+whoami
+
+echo "Jenkins build completed successfully."</code></pre>
+
+    <div class="info">
+        <strong>Important:</strong>
+        Jenkins automatically provides environment variables such as
+        <code>JOB_NAME</code> and <code>BUILD_NUMBER</code>
+        during job execution.
+    </div>
+
+    <h2>6. Save the Job</h2>
+
+    <div class="step">
+        <span class="step-number">Step 1</span>
+        Scroll to the bottom of the configuration page.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 2</span>
+        Click <strong>Save</strong>.
+    </div>
+
+    <p>
+        Jenkins will redirect you to the job dashboard.
+    </p>
+
+    <h2>7. Execute the Jenkins Job</h2>
+
+    <div class="step">
+        <span class="step-number">Step 1</span>
+        Click <strong>Build Now</strong> from the left-side menu.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 2</span>
+        Look at the Build History section.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 3</span>
+        Click the newly generated build number, such as
+        <code>#1</code>.
+    </div>
+
+    <div class="step">
+        <span class="step-number">Step 4</span>
+        Click <strong>Console Output</strong>.
+    </div>
+
+    <h2>8. Expected Console Output</h2>
+
+    <p>Your output should look similar to this:</p>
+
+    <pre><code>Started by user admin
+Running as SYSTEM
+Building in workspace /var/jenkins_home/workspace/first-jenkins-job
+
+=================================
+Welcome to Jenkins
+=================================
+
+Job Name: first-jenkins-job
+Build Number: 1
+
+Checking system information...
+
+jenkins-server
+Current date and time
+jenkins
+
+Jenkins build completed successfully.
+
+Finished: SUCCESS</code></pre>
+
+    <div class="info">
+        <strong>Result:</strong>
+        If the console displays <code>Finished: SUCCESS</code>,
+        your first Jenkins job has completed successfully.
+    </div>
+
+    <h2>9. Understanding Build Status</h2>
+
+    <table>
+        <tr>
+            <th>Status</th>
+            <th>Meaning</th>
+        </tr>
+        <tr>
+            <td>Success</td>
+            <td>Build completed successfully.</td>
+        </tr>
+        <tr>
+            <td>Failure</td>
+            <td>Build encountered an error.</td>
+        </tr>
+        <tr>
+            <td>Unstable</td>
+            <td>Build completed but one or more tests or configured checks failed.</td>
+        </tr>
+        <tr>
+            <td>Aborted</td>
+            <td>Build was manually or programmatically stopped.</td>
+        </tr>
+    </table>
+
+    <h2>10. Practical Exercises</h2>
+
+    <p>Complete these exercises independently:</p>
+
+    <ol class="checklist">
+        <li>Create a Freestyle job named <code>linux-system-info</code>.</li>
+        <li>Display the hostname and operating system information.</li>
+        <li>Display available disk space using <code>df -h</code>.</li>
+        <li>Display memory information using <code>free -h</code>.</li>
+        <li>Execute the job three times.</li>
+        <li>Inspect the build history and console output.</li>
+        <li>Modify the shell script and execute the job again.</li>
+    </ol>
+
+    <h2>11. Troubleshooting</h2>
+
+    <h3>Build fails immediately</h3>
+
+    <p>
+        Open Console Output and identify the failing command.
+        Verify that the shell commands are supported inside the Jenkins container.
+    </p>
+
+    <h3>Permission denied</h3>
+
+    <p>
+        Check the user running the Jenkins build and the permissions
+        of the workspace or files being accessed.
+    </p>
+
+    <h3>Build remains in the queue</h3>
+
+    <p>
+        Check whether Jenkins has an available executor and whether
+        the build is waiting for an agent.
+    </p>
+
+    <h2>12. What You Learned</h2>
+
+    <ul>
+        <li>Accessing the Jenkins dashboard.</li>
+        <li>Creating a Freestyle project.</li>
+        <li>Configuring a shell build step.</li>
+        <li>Executing Jenkins jobs.</li>
+        <li>Understanding Jenkins build numbers.</li>
+        <li>Inspecting console output and build status.</li>
+    </ul>
+
+    <div class="info">
+        <strong>Next practical:</strong>
+        Create a Jenkins Pipeline job and execute a Jenkinsfile
+        containing multiple stages.
+    </div>
+
+</div>
+
+</body>
+</html>
+

@@ -1,0 +1,392 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bash Scripting - Variables</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.7;
+            color: #263238;
+            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1, h2, h3 {
+            color: #1565c0;
+        }
+
+        h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+            margin-top: 30px;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: Consolas, monospace;
+        }
+
+        .note {
+            background: #e3f2fd;
+            padding: 12px;
+            border-left: 4px solid #1976d2;
+            margin: 15px 0;
+        }
+
+        .task {
+            background: #f1f8e9;
+            padding: 15px;
+            border-left: 4px solid #689f38;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #e3f2fd;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Bash Scripting - Variables</h1>
+
+    <p>
+        A variable is used to store information such as
+        text, numbers, file paths, and command outputs.
+    </p>
+
+    <h2>1. Creating Variables</h2>
+
+    <p>Use the following syntax to declare a variable:</p>
+
+    <pre><code>variable_name=value</code></pre>
+
+    <p>Example:</p>
+
+    <pre><code>name="Manohar"
+age=30
+city="Hyderabad"
+
+echo "$name"
+echo "$age"
+echo "$city"</code></pre>
+
+    <div class="note">
+        <strong>Important:</strong>
+        Do not add spaces before or after the
+        <code>=</code> operator when assigning variables.
+    </div>
+
+    <h2>2. Accessing Variables</h2>
+
+    <p>Use the dollar sign ($) to access a variable.</p>
+
+    <pre><code>course="Linux"
+
+echo "$course"
+echo "I am learning $course"</code></pre>
+
+    <h3>Expected Output</h3>
+
+    <pre><code>Linux
+I am learning Linux</code></pre>
+
+    <h2>3. Variable Naming Rules</h2>
+
+    <ul>
+        <li>Variable names are case-sensitive.</li>
+        <li>Names can contain letters, numbers, and underscores.</li>
+        <li>Names cannot start with a number.</li>
+        <li>Names cannot contain spaces.</li>
+    </ul>
+
+    <pre><code>user_name="admin"
+USER_NAME="root"
+server1="ubuntu"
+
+echo "$user_name"
+echo "$USER_NAME"
+echo "$server1"</code></pre>
+
+    <h2>4. Read-Only Variables</h2>
+
+    <p>
+        The <code>readonly</code> command prevents a variable
+        from being modified.
+    </p>
+
+    <pre><code>readonly COMPANY="Learning Portal"
+
+echo "$COMPANY"
+
+COMPANY="New Company"</code></pre>
+
+    <p>
+        The final command produces an error because
+        the variable is read-only.
+    </p>
+
+    <h2>5. Environment Variables</h2>
+
+    <p>
+        Environment variables are available to processes
+        started from the current shell.
+    </p>
+
+    <pre><code>echo "$HOME"
+echo "$USER"
+echo "$PATH"
+echo "$SHELL"</code></pre>
+
+    <p>Create an environment variable:</p>
+
+    <pre><code>export APP_ENV="development"
+
+echo "$APP_ENV"</code></pre>
+
+    <p>Verify it in a child Bash process:</p>
+
+    <pre><code>bash -c 'echo "$APP_ENV"'</code></pre>
+
+    <h2>6. Local vs Environment Variables</h2>
+
+    <table>
+        <tr>
+            <th>Local Shell Variable</th>
+            <th>Environment Variable</th>
+        </tr>
+        <tr>
+            <td>Created using assignment</td>
+            <td>Exported using export</td>
+        </tr>
+        <tr>
+            <td>Available in the current shell</td>
+            <td>Inherited by child processes</td>
+        </tr>
+        <tr>
+            <td>Example: name="Linux"</td>
+            <td>Example: export name="Linux"</td>
+        </tr>
+    </table>
+
+    <h2>7. Taking User Input</h2>
+
+    <p>
+        Use the <code>read</code> command to accept input.
+    </p>
+
+    <pre><code>read -p "Enter your name: " name
+
+echo "Welcome $name"</code></pre>
+
+    <h2>8. Command Substitution</h2>
+
+    <p>
+        Store the output of a command inside a variable
+        using <code>$(command)</code>.
+    </p>
+
+    <pre><code>current_date=$(date)
+hostname=$(hostname)
+current_user=$(whoami)
+
+echo "Date: $current_date"
+echo "Hostname: $hostname"
+echo "User: $current_user"</code></pre>
+
+    <h2>9. Arithmetic with Variables</h2>
+
+    <p>
+        Use <code>$(( ))</code> to perform integer arithmetic.
+    </p>
+
+    <pre><code>num1=10
+num2=20
+
+sum=$((num1 + num2))
+difference=$((num2 - num1))
+product=$((num1 * num2))
+
+echo "Sum: $sum"
+echo "Difference: $difference"
+echo "Product: $product"</code></pre>
+
+    <h2>10. Special Variables</h2>
+
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td><code>$0</code></td>
+            <td>Script name or invocation path</td>
+        </tr>
+        <tr>
+            <td><code>$1</code></td>
+            <td>First positional argument</td>
+        </tr>
+        <tr>
+            <td><code>$2</code></td>
+            <td>Second positional argument</td>
+        </tr>
+        <tr>
+            <td><code>$#</code></td>
+            <td>Number of positional arguments</td>
+        </tr>
+        <tr>
+            <td><code>$@</code></td>
+            <td>All positional arguments</td>
+        </tr>
+        <tr>
+            <td><code>$?</code></td>
+            <td>Exit status of previous command</td>
+        </tr>
+        <tr>
+            <td><code>$$</code></td>
+            <td>Current shell process ID</td>
+        </tr>
+    </table>
+
+    <h3>Example</h3>
+
+    <p>Create a file named <code>arguments.sh</code>:</p>
+
+    <pre><code>#!/bin/bash
+
+echo "Script: $0"
+echo "First argument: $1"
+echo "Second argument: $2"
+echo "Total arguments: $#"</code></pre>
+
+    <p>Run:</p>
+
+    <pre><code>bash arguments.sh Linux DevOps</code></pre>
+
+    <h2>11. Default Variable Values</h2>
+
+    <p>
+        Use <code>${variable:-default}</code> to provide
+        a fallback when a variable is unset or empty.
+    </p>
+
+    <pre><code>username=""
+
+echo "${username:-guest}"</code></pre>
+
+    <h3>Expected Output</h3>
+
+    <pre><code>guest</code></pre>
+
+    <h2>12. Removing Variables</h2>
+
+    <p>
+        Use <code>unset</code> to remove a variable.
+    </p>
+
+    <pre><code>course="Bash"
+
+echo "$course"
+
+unset course
+
+echo "$course"</code></pre>
+
+    <h2>13. Practical Exercise</h2>
+
+    <div class="task">
+        <h3>Task 1: User Information</h3>
+
+        <p>Create a Bash script that:</p>
+
+        <ol>
+            <li>Stores your name in a variable.</li>
+            <li>Stores your course name.</li>
+            <li>Stores your city.</li>
+            <li>Prints all three values.</li>
+        </ol>
+    </div>
+
+    <div class="task">
+        <h3>Task 2: Server Information</h3>
+
+        <p>Create a script that displays:</p>
+
+        <ol>
+            <li>Current username.</li>
+            <li>System hostname.</li>
+            <li>Current date and time.</li>
+            <li>Home directory.</li>
+        </ol>
+    </div>
+
+    <div class="task">
+        <h3>Task 3: Calculator</h3>
+
+        <p>
+            Create a Bash script that reads two integers
+            from the user and prints their sum,
+            difference, and product.
+        </p>
+    </div>
+
+    <h2>14. Practice Script</h2>
+
+    <p>Create <code>variables.sh</code>:</p>
+
+    <pre><code>#!/bin/bash
+
+read -p "Enter your name: " name
+read -p "Enter your course: " course
+
+current_date=$(date)
+current_user=$(whoami)
+hostname=$(hostname)
+
+echo "-------------------------"
+echo "Welcome $name"
+echo "Course: $course"
+echo "Current User: $current_user"
+echo "Hostname: $hostname"
+echo "Date: $current_date"
+echo "-------------------------"</code></pre>
+
+    <p>Execute the script:</p>
+
+    <pre><code>bash variables.sh</code></pre>
+
+    <h2>Summary</h2>
+
+    <p>
+        You have learned how to declare, access, export,
+        modify, and remove Bash variables. You also practiced
+        command substitution, arithmetic, user input,
+        and special shell variables.
+    </p>
+
+</body>
+</html>
+

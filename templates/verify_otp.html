@@ -1,0 +1,94 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Verify email | Learning Labs{% endblock %}
+
+{% block content %}
+
+<h1>Verify your email</h1>
+
+<p class="auth-sub">
+    Enter the six-digit code sent to {{ email }}.
+</p>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+
+<form class="auth-form" method="post" action="{{ url_for('verify_otp') }}">
+
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}" />
+
+    <div class="field">
+        <label for="otp">Verification code</label>
+        <input
+            id="otp"
+            name="otp"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            minlength="6"
+            maxlength="6"
+            required
+            autofocus
+        />
+    </div>
+
+    <button class="auth-btn" type="submit">
+        {% if purpose == "login" %}
+            Verify and login
+        {% else %}
+            Verify and create account
+        {% endif %}
+    </button>
+
+</form>
+
+<form method="post" action="{{ url_for('resend_otp') }}" class="resend-otp-form">
+
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}" />
+
+    <button
+        class="auth-btn"
+        id="resendOtpButton"
+        type="submit"
+        {% if resend_wait|default(0)|int > 0 %}disabled{% endif %}
+    >
+        {% if resend_wait|default(0)|int > 0 %}
+            Resend code in <span id="resendCountdown">{{ resend_wait }}</span>s
+        {% else %}
+            Resend verification code
+        {% endif %}
+    </button>
+
+</form>
+
+<script>
+(function () {
+    let remaining = Number({{ resend_wait|default(0)|int }});
+    const button = document.getElementById("resendOtpButton");
+    const countdown = document.getElementById("resendCountdown");
+
+    if (!button || remaining <= 0) {
+        return;
+    }
+
+    const timer = setInterval(function () {
+        remaining--;
+
+        if (remaining <= 0) {
+            clearInterval(timer);
+            button.disabled = false;
+            button.textContent = "Resend verification code";
+            return;
+        }
+
+        if (countdown) {
+            countdown.textContent = remaining;
+        }
+    }, 1000);
+})();
+</script>
+
+{% endblock %}

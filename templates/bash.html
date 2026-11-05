@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bash Lab</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='base.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css"
+    />
+  </head>
+
+  <body>
+    <header class="page-header" id="pageHeader">
+      <div class="topbar">
+        <a class="home-btn" href="/">Home</a>
+
+        <div class="brand">
+          <div class="brand-icon">B</div>
+          <div>
+            <h1>Linux Lab</h1>
+            <p>Shell scripting and automation</p>
+          </div>
+        </div>
+
+        <nav class="top-navigation" aria-label="Main navigation">
+          <button class="nav-item" id="hostsButton" type="button">Hosts</button>
+          <button class="nav-item" id="documentsButton" type="button">
+            Documents
+          </button>
+        </nav>
+
+        <div class="host-info">
+          <span class="logged-in-user">
+            Welcome, {{ session.get('username', '') }}
+          </span>
+
+          <div class="host-actions-right">
+            <span id="hostStatus" class="status-pill connected">Connected</span>
+            <a class="logout-btn" href="/logout">Logout</a>
+          </div>
+
+          <button
+            id="refreshBtn"
+            class="icon-button"
+            type="button"
+            title="Refresh status"
+          >
+            ↻
+          </button>
+        </div>
+      </div>
+
+      <div class="top-disclaimer">
+        <strong>DISCLAIMER</strong>
+        <span>
+          This lab provisions one temporary Bash practice server VM on the
+          configured remote host. Bash lab resources are automatically destroyed
+          after one hour, and no lab data is retained after destruction.
+        </span>
+      </div>
+    </header>
+
+    <section class="top-controls">
+      <div class="host-selector">
+        <strong class="controls-title">BASH HOST</strong>
+
+        <div class="host-selector-list">
+          <button
+            class="host-item selected"
+            data-container="bash-server"
+            type="button"
+          >
+            <span class="host-dot"></span>
+            <span class="host-label">
+              <strong>Linux-Server</strong>
+              <small id="bash-serverStatus">Not created</small>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="cluster-controls">
+        <button id="createClusterBtn" class="button primary" type="button">
+          Create lab
+        </button>
+        <button id="stopClusterBtn" class="button secondary" type="button">
+          Stop lab
+        </button>
+        <button id="destroyClusterBtn" class="button danger" type="button">
+          Destroy lab
+        </button>
+
+        <div class="timer-card">
+          <span>TIME REMAINING</span>
+          <strong id="clusterTimer">--:--:--</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="environment-heading">
+      <div>
+        <div class="eyebrow">Shell Scripting Enviroment</div>
+        <h2 id="activeHostTitle">Linux Server</h2>
+        <p id="activeHostSubtitle">Bash Practice Terminal</p>
+      </div>
+
+      <div class="host-actions"></div>
+    </section>
+
+    <main class="workspace" id="workspace">
+      <section class="terminal-section panel" id="terminalPanel">
+        <div class="section-heading">
+          <div>
+            <h3>Terminal</h3>
+            <p id="terminalDescription">Interactive Bash practice terminal</p>
+          </div>
+
+          <div class="panel-tools">
+            <span id="terminalState" class="terminal-state">Not connected</span>
+
+            <button
+              id="terminalMaximizeBtn"
+              class="panel-tool-button"
+              type="button"
+              title="Maximize terminal"
+              aria-label="Maximize terminal"
+            >
+              ⛶
+            </button>
+          </div>
+        </div>
+
+        <div id="terminal" class="terminal"></div>
+      </section>
+
+      <!-- Middle draggable splitter -->
+      <div
+        id="horizontalSplitter"
+        class="horizontal-splitter"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Drag to resize terminal and documents"
+        tabindex="0"
+        title="Drag horizontally to resize panels"
+      >
+        <span></span>
+      </div>
+
+      <!-- Documents panel -->
+      <section id="documentsPanel" class="documents-panel panel">
+        <section
+          class="bash-progress"
+          id="progressPanel"
+          aria-label="Bash learning progress"
+        >
+          <div class="progress-topbar-heading">
+            <strong>Progress</strong>
+            <span id="progressPercent">0%</span>
+            <span id="progressCount">0 / 0 completed</span>
+          </div>
+
+          <div
+            class="progress-track"
+            role="progressbar"
+            aria-label="Bash learning progress"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+          >
+            <div id="progressBar" class="progress-fill"></div>
+          </div>
+
+          <ul id="progressList" class="progress-list" aria-hidden="true"></ul>
+
+          <div class="progress-actions">
+            <button id="progressCheckBtn" class="button primary" type="button">
+              Mark complete
+            </button>
+
+            <button
+              id="progressResetBtn"
+              class="button secondary"
+              type="button"
+            >
+              Reset
+            </button>
+          </div>
+
+          <div id="progressMessage" class="progress-message"></div>
+        </section>
+
+        <div class="section-heading">
+          <div>
+            <h3>Bash Documents</h3>
+            <p>Bash scripting, Linux commands, and automation reference</p>
+          </div>
+
+          <div class="panel-tools">
+            <button
+              id="documentMaximizeBtn"
+              class="panel-tool-button"
+              type="button"
+              title="Maximize documents"
+              aria-label="Maximize documents"
+            >
+              ⛶
+            </button>
+          </div>
+        </div>
+
+        <div class="document-actions">
+          <select id="documentSelect" aria-label="Select Bash document">
+            <option value="">Loading documents...</option>
+          </select>
+
+          <button id="reloadDocsBtn" class="button secondary" type="button">
+            Refresh
+          </button>
+        </div>
+
+        <div id="documentContent" class="document-content">
+          Loading Bash documents...
+        </div>
+      </section>
+    </main>
+
+    <div
+      id="verticalSplitter"
+      class="vertical-splitter"
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="Drag to resize panel height"
+      tabindex="0"
+      title="Drag vertically to resize panel height"
+    >
+      <span></span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.8.1/dist/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.1/lib/xterm-addon-fit.js"></script>
+    <script src="{{ url_for('static', filename='bash.js') }}"></script>
+
+    <!-- Update Linux server button color according to actual status -->
+    <script>
+      (() => {
+        const statusElement = document.getElementById("bash-serverStatus");
+        const hostButton = document.querySelector(
+          '.host-item[data-container="bash-server"]',
+        );
+
+        if (!statusElement || !hostButton) return;
+
+        function updateHostStatus() {
+          const status = statusElement.textContent.trim().toLowerCase();
+
+          const isRunning = /\brunning\b/.test(status) || /\bup\b/.test(status);
+
+          hostButton.classList.toggle("running", isRunning);
+          hostButton.classList.toggle("stopped", !isRunning);
+        }
+
+        updateHostStatus();
+
+        const observer = new MutationObserver(updateHostStatus);
+
+        observer.observe(statusElement, {
+          childList: true,
+          characterData: true,
+          subtree: true,
+        });
+      })();
+    </script>
+
+    <!-- Middle splitter resizing -->
+    <script>
+      (() => {
+        const workspace = document.getElementById("workspace");
+        const splitter = document.getElementById("horizontalSplitter");
+        const terminalPanel = document.getElementById("terminalPanel");
+        const documentsPanel = document.getElementById("documentsPanel");
+
+        if (!workspace || !splitter || !terminalPanel || !documentsPanel) {
+          return;
+        }
+
+        let dragging = false;
+
+        function resizePanels(clientX) {
+          const bounds = workspace.getBoundingClientRect();
+          const availableWidth = bounds.width - 32;
+          const relativeX = clientX - bounds.left - 16;
+          const minPanelWidth = 180;
+
+          const leftWidth = Math.max(
+            minPanelWidth,
+            Math.min(availableWidth - minPanelWidth, relativeX),
+          );
+
+          const rightWidth = availableWidth - leftWidth;
+
+          workspace.style.gridTemplateColumns = `${leftWidth}px 16px ${rightWidth}px`;
+
+          if (window.terminal && typeof window.terminal.fit === "function") {
+            window.terminal.fit();
+          }
+
+          window.dispatchEvent(new Event("resize"));
+        }
+
+        splitter.addEventListener("pointerdown", (event) => {
+          if (
+            workspace.classList.contains("terminal-maximized") ||
+            workspace.classList.contains("documents-maximized") ||
+            window.innerWidth <= 850
+          ) {
+            return;
+          }
+
+          dragging = true;
+          splitter.setPointerCapture(event.pointerId);
+
+          document.body.style.cursor = "col-resize";
+          document.body.style.userSelect = "none";
+
+          resizePanels(event.clientX);
+          event.preventDefault();
+        });
+
+        splitter.addEventListener("pointermove", (event) => {
+          if (!dragging) return;
+
+          resizePanels(event.clientX);
+          event.preventDefault();
+        });
+
+        function stopDragging() {
+          if (!dragging) return;
+
+          dragging = false;
+          document.body.style.cursor = "";
+          document.body.style.userSelect = "";
+
+          window.dispatchEvent(new Event("resize"));
+        }
+
+        splitter.addEventListener("pointerup", stopDragging);
+        splitter.addEventListener("pointercancel", stopDragging);
+        splitter.addEventListener("lostpointercapture", stopDragging);
+
+        splitter.addEventListener("keydown", (event) => {
+          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") {
+            return;
+          }
+
+          const bounds = workspace.getBoundingClientRect();
+          const currentWidth = terminalPanel.getBoundingClientRect().width;
+          const change = event.key === "ArrowRight" ? 30 : -30;
+
+          resizePanels(bounds.left + 16 + currentWidth + change);
+          event.preventDefault();
+        });
+
+        window.addEventListener("resize", () => {
+          if (window.innerWidth <= 850) {
+            workspace.style.gridTemplateColumns = "";
+          }
+        });
+      })();
+    </script>
+
+    <!-- Full-screen maximize and restore for Terminal and Documents -->
+    <script>
+      (() => {
+        const workspace = document.getElementById("workspace");
+        const terminalPanel = document.getElementById("terminalPanel");
+        const documentsPanel = document.getElementById("documentsPanel");
+        const splitter = document.getElementById("horizontalSplitter");
+
+        const terminalButton = document.getElementById("terminalMaximizeBtn");
+        const documentButton = document.getElementById("documentMaximizeBtn");
+
+        if (
+          !workspace ||
+          !terminalPanel ||
+          !documentsPanel ||
+          !terminalButton ||
+          !documentButton
+        ) {
+          return;
+        }
+
+        let maximizedPanel = null;
+        let originalWorkspaceStyle = "";
+        let originalWorkspaceClass = "";
+
+        function fitTerminal() {
+          requestAnimationFrame(() => {
+            if (window.terminal && typeof window.terminal.fit === "function") {
+              window.terminal.fit();
+            }
+
+            window.dispatchEvent(new Event("resize"));
+          });
+        }
+
+        function restoreLayout() {
+          if (!maximizedPanel) return;
+
+          workspace.setAttribute("style", originalWorkspaceStyle);
+          workspace.className = originalWorkspaceClass;
+
+          terminalPanel.style.removeProperty("display");
+          documentsPanel.style.removeProperty("display");
+          terminalPanel.style.removeProperty("grid-column");
+          documentsPanel.style.removeProperty("grid-column");
+
+          if (splitter) {
+            splitter.style.removeProperty("display");
+          }
+
+          maximizedPanel = null;
+
+          terminalButton.title = "Maximize terminal";
+          terminalButton.setAttribute("aria-label", "Maximize terminal");
+          terminalButton.textContent = "⛶";
+
+          documentButton.title = "Maximize documents";
+          documentButton.setAttribute("aria-label", "Maximize documents");
+          documentButton.textContent = "⛶";
+
+          fitTerminal();
+        }
+
+        function maximizePanel(panel, type) {
+          if (maximizedPanel === panel) {
+            restoreLayout();
+            return;
+          }
+
+          if (maximizedPanel) {
+            restoreLayout();
+          }
+
+          originalWorkspaceStyle = workspace.getAttribute("style") || "";
+          originalWorkspaceClass = workspace.className;
+
+          maximizedPanel = panel;
+
+          workspace.classList.remove(
+            "terminal-maximized",
+            "documents-maximized",
+          );
+
+          workspace.classList.add(`${type}-maximized`);
+
+          workspace.style.setProperty("position", "fixed", "important");
+          workspace.style.setProperty("inset", "0", "important");
+          workspace.style.setProperty("width", "100vw", "important");
+          workspace.style.setProperty("height", "100vh", "important");
+          workspace.style.setProperty("min-height", "0", "important");
+          workspace.style.setProperty("max-height", "none", "important");
+          workspace.style.setProperty("margin", "0", "important");
+          workspace.style.setProperty("padding", "12px", "important");
+          workspace.style.setProperty("z-index", "99999", "important");
+          workspace.style.setProperty(
+            "background",
+            "var(--bash-bg)",
+            "important",
+          );
+          workspace.style.setProperty(
+            "grid-template-columns",
+            "minmax(0, 1fr)",
+            "important",
+          );
+          workspace.style.setProperty("overflow", "hidden", "important");
+
+          if (panel === terminalPanel) {
+            documentsPanel.style.setProperty("display", "none", "important");
+            terminalPanel.style.setProperty("display", "flex", "important");
+            terminalPanel.style.setProperty("grid-column", "1", "important");
+
+            if (splitter) {
+              splitter.style.setProperty("display", "none", "important");
+            }
+
+            terminalButton.title = "Restore terminal";
+            terminalButton.setAttribute("aria-label", "Restore terminal");
+            terminalButton.textContent = "⊡";
+          } else {
+            terminalPanel.style.setProperty("display", "none", "important");
+            documentsPanel.style.setProperty("display", "flex", "important");
+            documentsPanel.style.setProperty("grid-column", "1", "important");
+
+            if (splitter) {
+              splitter.style.setProperty("display", "none", "important");
+            }
+
+            documentButton.title = "Restore documents";
+            documentButton.setAttribute("aria-label", "Restore documents");
+            documentButton.textContent = "⊡";
+          }
+
+          fitTerminal();
+        }
+
+        terminalButton.addEventListener(
+          "click",
+          (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            maximizePanel(terminalPanel, "terminal");
+          },
+          true,
+        );
+
+        documentButton.addEventListener(
+          "click",
+          (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            maximizePanel(documentsPanel, "documents");
+          },
+          true,
+        );
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && maximizedPanel) {
+            restoreLayout();
+          }
+        });
+
+        window.addEventListener("resize", () => {
+          if (maximizedPanel) {
+            fitTerminal();
+          }
+        });
+      })();
+    </script>
+
+    <!-- Ensure progress is loaded before selecting the first available document. -->
+    <script>
+      window.addEventListener("load", async () => {
+        if (
+          typeof loadProgress === "function" &&
+          typeof loadDocuments === "function"
+        ) {
+          await loadProgress();
+          await loadDocuments({ preserveSelection: false });
+        }
+      });
+    </script>
+  </body>
+</html>
+

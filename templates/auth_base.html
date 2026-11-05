@@ -1,0 +1,30 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Learning Labs{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth-layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth-forms.css') }}">
+</head>
+<body>
+
+<main class="auth-container">
+
+    {% block left_panel %}{% endblock %}
+
+    {% block right_panel %}
+    <section class="auth-panel">
+        <div class="form-content">
+            {% block content %}{% endblock %}
+        </div>
+    </section>
+    {% endblock %}
+
+</main>
+
+</body>
+</html>
+

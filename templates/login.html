@@ -1,0 +1,167 @@
+
+{% extends "auth_base.html" %}
+
+{% block title %}Login | Learning Labs{% endblock %}
+
+{% block left_panel %}
+
+<section class="auth-panel form-panel">
+    <div class="form-content">
+
+        <a href="{{ url_for('login') }}" class="brand">
+            <span class="brand-icon">LL</span>
+            <span>Learning Labs</span>
+        </a>
+
+        <div class="form-heading">
+            <span class="eyebrow">WELCOME BACK</span>
+            <h1>Sign in to your account</h1>
+            <p>Enter your username or email to receive a verification code.</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form class="auth-form" method="post" action="{{ url_for('login') }}">
+
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ next_url }}">
+
+            <div class="field">
+                <label for="identifier">Username or email</label>
+                <input
+                    id="identifier"
+                    name="identifier"
+                    type="text"
+                    autocomplete="username"
+                    value="{{ request.form.get('identifier', '') }}"
+                    placeholder="Enter username or email"
+                    required
+                    autofocus>
+            </div>
+
+            <button class="auth-btn" type="submit">
+                Send verification code
+            </button>
+
+        </form>
+
+        <div style="text-align:center; margin:20px 0; color:#888;">
+            OR
+        </div>
+
+        <a
+            href="{{ url_for('google_login', next=next_url) }}"
+            class="auth-btn"
+            style="display:flex; align-items:center; justify-content:center; gap:10px; text-decoration:none; background:#fff; color:#333; border:1px solid #ddd;"
+        >
+            <svg width="20" height="20" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.96 46.98 31.83 46.98 24.55z"/>
+                <path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Continue with Google
+        </a>
+
+        <div class="auth-switch">
+            Don't have an account?
+            <a href="{{ url_for('register') }}">Create an account</a>
+        </div>
+
+        <div class="form-footer">
+            © 2026 Learning Labs. All rights reserved.
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block right_panel %}
+
+<section class="visual-panel terminal-panel">
+
+    <div class="visual-top">
+        <div class="visual-brand">LEARNING LABS</div>
+        <span class="status-label">
+            <span class="status-dot"></span>
+            LAB ENVIRONMENT
+        </span>
+    </div>
+
+    <div class="terminal-wrapper">
+
+        <div class="terminal-window">
+
+            <div class="terminal-header">
+                <div class="terminal-controls">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span>manohar@learning-labs: ~/projects</span>
+            </div>
+
+            <div class="terminal-content">
+
+                <p><span class="prompt">$</span> ansible-playbook setup.yml</p>
+                <p class="terminal-muted">PLAY [Configure Linux servers]</p>
+                <p class="terminal-success">TASK [Gathering Facts] ******** OK</p>
+                <p class="terminal-success">TASK [Install required packages] OK</p>
+                <p class="terminal-success">PLAY RECAP *********** successful</p>
+
+                <br>
+
+                <p><span class="prompt">$</span> bash deploy.sh</p>
+                <p class="terminal-output">Checking environment...</p>
+                <p class="terminal-output">Preparing deployment...</p>
+                <p class="terminal-success">Deployment completed successfully.</p>
+
+                <br>
+
+                <p><span class="prompt">$</span> jenkins-cli build deploy-app</p>
+                <p class="terminal-output">Starting Jenkins build...</p>
+                <p class="terminal-success">Build #42: SUCCESS</p>
+
+                <br>
+
+                <p><span class="prompt">$</span> <span class="cursor">_</span></p>
+
+            </div>
+
+        </div>
+
+        <div class="terminal-caption">
+            <span class="caption-line"></span>
+            <span>REAL TOOLS. REAL PRACTICE.</span>
+        </div>
+
+    </div>
+
+    <div class="visual-description">
+        <span class="eyebrow-light">YOUR DEVELOPMENT SPACE</span>
+        <h2>Learn by building.<br>Grow by doing.</h2>
+        <p>
+            Explore DevOps technologies, work with real tools,
+            experiment in your own environment and develop
+            skills that matter.
+        </p>
+    </div>
+
+    <div class="visual-footer">
+        <span>Linux</span>
+        <span>Kubernetes</span>
+        <span>Docker</span>
+        <span>Terraform</span>
+        <span>Ansible</span>
+    </div>
+
+</section>
+
+{% endblock %}
+

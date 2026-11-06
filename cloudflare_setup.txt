@@ -72,3 +72,11 @@ For example:
 - app.learninglabs.study
 - portal.learninglabs.study
 Send me the kubectl get svc -A output and your preferred URL. I'll provide the exact Kubernetes commands and YAML files for your environment, one step at a time.
+
+
+Create kubernetes Deployment
+------------------------------
+kubectl create namespace cloudflare-tunnel
+kubectl create secret generic cloudflared-token --namespace cloudflare-tunnel --from-literal=token='YOUR_NEW_TOKEN'
+
+kubectl create deployment cloudflared --namespace cloudflare-tunnel --image=cloudflare/cloudflared:latest --replicas=2 -- tunnel --no-autoupdate run --token-from-secret

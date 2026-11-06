@@ -1,0 +1,46 @@
+
+#!/bin/bash
+set -e
+
+NAMESPACE="nginx-gateway"
+VERSION="2.8.1"
+
+echo "Installing Gateway API CRDs..."
+
+kubectl kustomize \
+  "https://github.com/nginx/nginx-gateway-fabric/config/crd/gateway-api/standard?ref=v${VERSION}" \
+  | kubectl apply -f -
+
+echo "Creating namespace..."
+
+kubectl create namespace ${NAMESPACE} \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+echo "Installing NGINX Gateway Fabric using Helm..."
+
+helm upgrade --install ngf \
+  oci://ghcr.io/nginx/charts/nginx-gateway-fabric \
+  --version ${VERSION} \
+  --namespace ${NAMESPACE} \
+  --set nginx.service.type=ClusterIP \
+  --wait \
+  --timeout 10m
+
+echo "Waiting for deployment..."
+
+kubectl wait \
+  --namespace ${NAMESPACE} \
+  --for=condition=Available \
+  deployment/ngf-nginx-gateway-fabric \
+  --timeout=300s
+
+echo "Installation completed."
+
+echo "Helm releases:"
+helm list -n ${NAMESPACE}
+
+echo "Pods:"
+kubectl get pods -n ${NAMESPACE}
+
+echo "GatewayClass:"
+kubectl get gatewayclass

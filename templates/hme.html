@@ -1,0 +1,322 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learning Labs</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='home.css') }}"
+    />
+
+    <style>
+      .learning-banner-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.78);
+        backdrop-filter: blur(6px);
+        animation: bannerFadeIn 0.3s ease;
+      }
+
+      .learning-banner-container {
+        position: relative;
+        width: 100%;
+        max-width: 1100px;
+        max-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: bannerZoomIn 0.3s ease;
+      }
+
+      .learning-banner-container img {
+        display: block;
+        max-width: 100%;
+        max-height: 85vh;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 14px;
+        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+      }
+
+      .learning-banner-close {
+        position: absolute;
+        top: -16px;
+        right: -16px;
+        z-index: 2;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        background: #111827;
+        color: #fff;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .learning-banner-close:hover {
+        background: #dc2626;
+        transform: scale(1.08);
+      }
+
+      @keyframes bannerFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes bannerZoomIn {
+        from {
+          opacity: 0;
+          transform: scale(0.92);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @media (max-width: 600px) {
+        .learning-banner-overlay {
+          padding: 12px;
+        }
+
+        .learning-banner-container img {
+          max-height: 80vh;
+        }
+
+        .learning-banner-close {
+          top: -12px;
+          right: -8px;
+          width: 36px;
+          height: 36px;
+          font-size: 24px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="labs-page">
+      <nav class="home-nav">
+        <a href="/" class="home-brand" aria-label="Learning Labs home">
+          <strong>Learning Labs</strong>
+        </a>
+
+        <div class="nav-actions">
+          {% if session.get('is_admin') %}
+          <a class="nav-link" href="/admin">Admin</a>
+          {% endif %}
+
+          <a class="nav-link" href="/new-account" target="_blank" rel="noopener">
+            Add account
+          </a>
+
+          <a class="contribute-btn" href="/contribute">
+            Contribute
+          </a>
+
+          {% if session.get('user') or session.get('username') %}
+
+          <a class="suggest-lab-btn" href="/suggest-lab">
+            Suggest a Lab
+          </a>
+
+          <span class="user-welcome">
+            Welcome, <strong>{{ session.get('username') or session.get('user') }}</strong>
+          </span>
+
+          <a class="logout-btn" href="/logout">Logout</a>
+
+          {% else %}
+          <a class="login-btn" href="/login">Login</a>
+          {% endif %}
+        </div>
+      </nav>
+
+      <div class="contribution-banner">
+        <p>
+          You may contribute and learn to help keep this lab up and running.
+          Your support helps us maintain and improve these learning environments for everyone.
+        </p>
+      </div>
+
+      <section class="hero-section">
+        <div class="hero-content">
+          <span class="hero-label">PRACTICAL LEARNING ENVIRONMENTS</span>
+
+          <h1>
+            Learn by doing.<br />
+            <span>Build real skills.</span>
+          </h1>
+
+          <p>
+            Explore Ansible, Jenkins and Bash through hands-on labs.
+            Work with real commands, practise automation and build
+            confidence using the tools you'll encounter in real
+            technical environments.
+          </p>
+
+          <div class="hero-tags">
+            <span>Linux</span>
+            <span>Automation</span>
+            <span>DevOps</span>
+            <span>Hands-on practice</span>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="terminal-card">
+            <div class="terminal-top">
+              <div class="terminal-dots">
+                <i></i>
+                <i></i>
+                <i></i>
+              </div>
+              <span>learning-labs — terminal</span>
+            </div>
+
+            <div class="terminal-body">
+              <p><span class="terminal-prompt">$</span> ansible --version</p>
+              <p class="terminal-result">ansible [core 2.16.3]</p>
+
+              <br />
+
+              <p><span class="terminal-prompt">$</span> systemctl status jenkins</p>
+              <p class="terminal-success">Active: active (running)</p>
+
+              <br />
+
+              <p><span class="terminal-prompt">$</span> bash deploy.sh</p>
+              <p class="terminal-success">Deployment completed successfully.</p>
+
+              <br />
+
+              <p><span class="terminal-prompt">$</span> <span class="terminal-cursor">_</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="labs-section">
+        <div class="section-heading">
+          <span class="section-label">CHOOSE YOUR ENVIRONMENT</span>
+          <h2>Explore the labs</h2>
+          <p>Select a lab and start practising.</p>
+        </div>
+
+        <section class="labs-grid">
+          {% for slug, lab in labs.items() %}
+          <a
+            class="lab-card {% if slug == 'ansible' %}lab-ansible{% elif slug == 'jenkins' %}lab-jenkins{% else %}lab-bash{% endif %}"
+            href="/{{ slug }}"
+          >
+            <div class="lab-card-top">
+              <div class="lab-icon" aria-hidden="true">
+                {% if slug == "ansible" %}
+                  A
+                {% elif slug == "jenkins" %}
+                  J
+                {% else %}
+                  B
+                {% endif %}
+              </div>
+
+              <span class="lab-number">
+                {% if loop.index < 10 %}0{% endif %}{{ loop.index }}
+              </span>
+            </div>
+
+            <div class="lab-card-content">
+              <h3>
+                {% if slug == "ansible" %}
+                  Ansible Lab
+                {% elif slug == "jenkins" %}
+                  Jenkins Lab
+                {% elif slug == "bash" %}
+                  Bash Lab
+                {% else %}
+                  {{ lab.title }}
+                {% endif %}
+              </h3>
+
+              <p>{{ lab.description }}</p>
+            </div>
+
+            <div class="lab-card-footer">
+              <span>Start practising</span>
+              <span class="lab-arrow" aria-hidden="true">→</span>
+            </div>
+          </a>
+          {% endfor %}
+        </section>
+      </section>
+
+      <footer class="home-footer">
+        <span>Learning Labs</span>
+        <span>Learn · Practice · Improve</span>
+      </footer>
+    </main>
+
+    <div class="learning-banner-overlay" id="learningBannerOverlay">
+      <div class="learning-banner-container">
+        <button
+          type="button"
+          class="learning-banner-close"
+          id="learningBannerClose"
+          aria-label="Close banner"
+        >
+          &times;
+        </button>
+
+        <img
+          src="{{ url_for('static', filename='images/learning-labs-banner.png') }}"
+          alt="Learning Labs Portal"
+        />
+      </div>
+    </div>
+
+    <script>
+      const learningBannerOverlay = document.getElementById("learningBannerOverlay");
+      const learningBannerClose = document.getElementById("learningBannerClose");
+
+      function closeLearningBanner() {
+        learningBannerOverlay.style.display = "none";
+      }
+
+      learningBannerClose.addEventListener("click", closeLearningBanner);
+
+      learningBannerOverlay.addEventListener("click", function (event) {
+        if (event.target === learningBannerOverlay) {
+          closeLearningBanner();
+        }
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeLearningBanner();
+        }
+      });
+    </script>
+  </body>
+</html>
+

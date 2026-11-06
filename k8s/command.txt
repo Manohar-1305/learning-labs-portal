@@ -4,3 +4,13 @@ sed -i 's/VERSION="2.8.1"/VERSION="2.4.2"/' nginx-gateway-install.sh
 
 kubectl get httproute -n learning-labs
 kubectl get gateway -n learning-labs
+
+
+helm upgrade ngf oci://ghcr.io/nginx/charts/nginx-gateway-fabric \
+  --version 2.4.2 \
+  -n nginx-gateway \
+  --set nginx.service.type=ClusterIP \
+  --wait
+
+kubectl get svc -n learning-labs
+kubectl get gateway -n learning-labs

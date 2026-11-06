@@ -86,3 +86,18 @@ spec:
       port: 5000
       targetPort: 5000
       nodePort: 30000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: learning-labs
+  namespace: learning-labs
+spec:
+  type: ClusterIP
+  selector:
+    app: learning-labs
+  ports:
+    - name: http
+      protocol: TCP
+      port: 5000
+      targetPort: 5000

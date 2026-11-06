@@ -1,0 +1,74 @@
+Your setup:
+Component	Details
+Domain	learninglabs.study
+Domain registrar	GoDaddy
+DNS provider	Cloudflare
+Cloudflare plan	Free
+Home lab	Kubernetes cluster
+Application	Already deployed in Kubernetes
+External access	Cloudflare Tunnel
+Public IP	Not required
+Router port forwarding	Not required
+
+Step 1: Domain configuration — COMPLETED
+You have already completed these steps.
+1. Purchased learninglabs.study from GoDaddy.
+2. Created a Cloudflare account.
+3. Added learninglabs.study to Cloudflare.
+4. Changed GoDaddy nameservers to:
+   - jimmy.ns.cloudflare.com
+   - sandra.ns.cloudflare.com
+5. Cloudflare shows the domain as Active.
+Do not change the GoDaddy nameservers again.
+Step 2: Create Cloudflare Tunnel
+You already created this tunnel:
+
+learninglabs-k8s
+
+You selected Docker because Cloudflare doesn't show Kubernetes in the operating-system options.
+
+That's fine. We will use the Docker option only to obtain the tunnel token. We will deploy the connector using Kubernetes.
+
+Important: The token you pasted earlier is exposed. Rotate it and generate a new token before deployment.
+Step 3: Deploy Cloudflare Tunnel in Kubernetes
+We will create:
+- Namespace: cloudflare-tunnel
+- Kubernetes Secret: stores the tunnel token
+- Deployment: runs cloudflared
+- Two replicas for connector availability
+The deployment will connect your Kubernetes cluster to Cloudflare.
+Step 4: Configure Public Hostname
+In Cloudflare:
+1. Open learninglabs-k8s.
+2. Go to Public Hostnames or Routes → Published application routes, depending on the dashboard version.
+3. Add your hostname.
+4. Configure the service destination using your Kubernetes Service DNS name.
+Example:
+Setting	Example
+Subdomain	app
+Domain	learninglabs.study
+Type	HTTP
+URL	myapp.default.svc.cluster.local:8080
+
+This is only an example; we will use your actual Kubernetes Service.
+Step 5: Test External Access
+Open:
+
+https://app.learninglabs.study
+
+Cloudflare will route traffic through the tunnel to your Kubernetes application.
+
+Before proceeding, I need two details.
+1. What is your Kubernetes application Service name, namespace and port?
+
+Run:
+kubectl get svc -A
+
+
+2. Which public URL do you want?
+
+For example:
+- learninglabs.study
+- app.learninglabs.study
+- portal.learninglabs.study
+Send me the kubectl get svc -A output and your preferred URL. I'll provide the exact Kubernetes commands and YAML files for your environment, one step at a time.

@@ -26,6 +26,9 @@ stringData:
   MAIL_FROM: "manohar.shetty507@gmail.com"
   MAIL_PASSWORD: "abcwzqizieekstzbfqgcd"
 
+  GOOGLE_CLIENT_ID=928848200515-n7slftk6b8c8td5aoheahikuf4o699ko.apps.googleusercontent.com
+  GOOGLE_REDIRECT_URI=https://learninglabs.study/auth/google/callback
+
 ---
 apiVersion: apps/v1
 kind: Deployment

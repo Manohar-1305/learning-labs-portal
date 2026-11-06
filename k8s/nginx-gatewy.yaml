@@ -1,0 +1,60 @@
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nginx-gateway
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nginx-gateway
+  namespace: nginx-gateway
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: nginxgateways.gateway.nginx.org
+spec:
+  group: gateway.nginx.org
+  scope: Namespaced
+  names:
+    plural: nginxgateways
+    singular: nginxgateway
+    kind: NginxGateway
+    shortNames:
+      - ng
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-gateway-fabric
+  namespace: nginx-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-gateway-fabric
+  template:
+    metadata:
+      labels:
+        app: nginx-gateway-fabric
+    spec:
+      serviceAccountName: nginx-gateway
+      containers:
+        - name: nginx-gateway-fabric
+          image: ghcr.io/nginx/nginx-gateway-fabric:2.8.1
+          args:
+            - nginx-gateway
+            - --gatewayclass=nginx
+            - --gatewayclass-creator=nginx
+          ports:
+            - name: metrics
+              containerPort: 9113

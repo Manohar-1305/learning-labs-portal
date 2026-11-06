@@ -1,3 +1,6 @@
 sed -i 's/VERSION="2.8.1"/VERSION="2.4.2"/' nginx-gateway-install.sh
 
 ./nginx-gateway-install.sh
+
+kubectl get httproute -n learning-labs
+kubectl get gateway -n learning-labs

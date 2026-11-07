@@ -7,6 +7,7 @@ import files.ansible as ansible
 import files.jenkins_lab as jenkins_lab
 import files.bash as bash
 import files.auth as auth
+import files.linux as Linux
 import files.users as users
 import files.contribute as contribute
 import files.admin as admin

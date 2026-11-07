@@ -64,6 +64,9 @@ kind load docker-image learning-labs:1.0 --name multi-node-cluster
 kubectl rollout restart deployment/learning-labs -n learning-labs
 kubectl rollout status deployment/learning-labs -n learning-labs
 
+kubectl get secret learning-labs-secret -n learning-labs -o jsonpath='{.data.MAIL_USER}' | base64 -d; echo
+kubectl get secret learning-labs-secret -n learning-labs -o jsonpath='{.data.MAIL_PASSWORD}' | base64 -d; echo
+
 docker exec -it postgres psql -U learning_user -d learning_labs -c 'SELECT * FROM lab_recommendations ORDER BY created_at DESC;'
 
 docker exec -it postgres psql -U learning_user -d learning_labs

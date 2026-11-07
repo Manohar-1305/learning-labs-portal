@@ -1,9 +1,10 @@
+
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bash Lab</title>
+    <title>Linux Lab</title>
 
     <link
       rel="stylesheet"
@@ -21,10 +22,10 @@
         <a class="home-btn" href="/">Home</a>
 
         <div class="brand">
-          <div class="brand-icon">B</div>
+          <div class="brand-icon">L</div>
           <div>
             <h1>Linux Lab</h1>
-            <p>Shell scripting and automation</p>
+            <p>Linux scripting and automation</p>
           </div>
         </div>
 
@@ -59,27 +60,28 @@
       <div class="top-disclaimer">
         <strong>DISCLAIMER</strong>
         <span>
-          This lab provisions one temporary Bash practice server VM on the
-          configured remote host. Bash lab resources are automatically destroyed
-          after one hour, and no lab data is retained after destruction.
+          This lab provisions one temporary Linux practice server on the
+          configured remote host. Linux lab resources are automatically
+          destroyed after one hour, and no lab data is retained after
+          destruction.
         </span>
       </div>
     </header>
 
     <section class="top-controls">
       <div class="host-selector">
-        <strong class="controls-title">BASH HOST</strong>
+        <strong class="controls-title">LINUX HOST</strong>
 
         <div class="host-selector-list">
           <button
             class="host-item selected"
-            data-container="bash-server"
+            data-container="linux-server"
             type="button"
           >
             <span class="host-dot"></span>
             <span class="host-label">
               <strong>Linux-Server</strong>
-              <small id="bash-serverStatus">Not created</small>
+              <small id="linux-serverStatus">Not created</small>
             </span>
           </button>
         </div>
@@ -105,9 +107,9 @@
 
     <section class="environment-heading">
       <div>
-        <div class="eyebrow">Shell Scripting Enviroment</div>
+        <div class="eyebrow">Linux Scripting Environment</div>
         <h2 id="activeHostTitle">Linux Server</h2>
-        <p id="activeHostSubtitle">Bash Practice Terminal</p>
+        <p id="activeHostSubtitle">Linux Practice Terminal</p>
       </div>
 
       <div class="host-actions"></div>
@@ -118,7 +120,7 @@
         <div class="section-heading">
           <div>
             <h3>Terminal</h3>
-            <p id="terminalDescription">Interactive Bash practice terminal</p>
+            <p id="terminalDescription">Interactive Linux practice terminal</p>
           </div>
 
           <div class="panel-tools">
@@ -139,7 +141,6 @@
         <div id="terminal" class="terminal"></div>
       </section>
 
-      <!-- Middle draggable splitter -->
       <div
         id="horizontalSplitter"
         class="horizontal-splitter"
@@ -152,12 +153,11 @@
         <span></span>
       </div>
 
-      <!-- Documents panel -->
       <section id="documentsPanel" class="documents-panel panel">
         <section
           class="bash-progress"
           id="progressPanel"
-          aria-label="Bash learning progress"
+          aria-label="Linux learning progress"
         >
           <div class="progress-topbar-heading">
             <strong>Progress</strong>
@@ -168,7 +168,7 @@
           <div
             class="progress-track"
             role="progressbar"
-            aria-label="Bash learning progress"
+            aria-label="Linux learning progress"
             aria-valuemin="0"
             aria-valuemax="100"
             aria-valuenow="0"
@@ -197,8 +197,8 @@
 
         <div class="section-heading">
           <div>
-            <h3>Bash Documents</h3>
-            <p>Bash scripting, Linux commands, and automation reference</p>
+            <h3>Linux Documents</h3>
+            <p>Linux commands, administration, and automation reference</p>
           </div>
 
           <div class="panel-tools">
@@ -215,7 +215,7 @@
         </div>
 
         <div class="document-actions">
-          <select id="documentSelect" aria-label="Select Bash document">
+          <select id="documentSelect" aria-label="Select Linux document">
             <option value="">Loading documents...</option>
           </select>
 
@@ -225,7 +225,7 @@
         </div>
 
         <div id="documentContent" class="document-content">
-          Loading Bash documents...
+          Loading Linux documents...
         </div>
       </section>
     </main>
@@ -245,14 +245,13 @@
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.8.1/dist/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.1/lib/xterm-addon-fit.js"></script>
-    <script src="{{ url_for('static', filename='bash.js') }}"></script>
+    <script src="{{ url_for('static', filename='linux.js') }}"></script>
 
-    <!-- Update Linux server button color according to actual status -->
     <script>
       (() => {
-        const statusElement = document.getElementById("bash-serverStatus");
+        const statusElement = document.getElementById("linux-serverStatus");
         const hostButton = document.querySelector(
-          '.host-item[data-container="bash-server"]',
+          '.host-item[data-container="linux-server"]',
         );
 
         if (!statusElement || !hostButton) return;
@@ -278,7 +277,6 @@
       })();
     </script>
 
-    <!-- Middle splitter resizing -->
     <script>
       (() => {
         const workspace = document.getElementById("workspace");
@@ -306,10 +304,6 @@
           const rightWidth = availableWidth - leftWidth;
 
           workspace.style.gridTemplateColumns = `${leftWidth}px 16px ${rightWidth}px`;
-
-          if (window.terminal && typeof window.terminal.fit === "function") {
-            window.terminal.fit();
-          }
 
           window.dispatchEvent(new Event("resize"));
         }
@@ -375,7 +369,6 @@
       })();
     </script>
 
-    <!-- Full-screen maximize and restore for Terminal and Documents -->
     <script>
       (() => {
         const workspace = document.getElementById("workspace");
@@ -401,13 +394,7 @@
         let originalWorkspaceClass = "";
 
         function fitTerminal() {
-          requestAnimationFrame(() => {
-            if (window.terminal && typeof window.terminal.fit === "function") {
-              window.terminal.fit();
-            }
-
-            window.dispatchEvent(new Event("resize"));
-          });
+          window.dispatchEvent(new Event("resize"));
         }
 
         function restoreLayout() {
@@ -544,19 +531,6 @@
           }
         });
       })();
-    </script>
-
-    <!-- Ensure progress is loaded before selecting the first available document. -->
-    <script>
-      window.addEventListener("load", async () => {
-        if (
-          typeof loadProgress === "function" &&
-          typeof loadDocuments === "function"
-        ) {
-          await loadProgress();
-          await loadDocuments({ preserveSelection: false });
-        }
-      });
     </script>
   </body>
 </html>

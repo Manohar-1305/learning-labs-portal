@@ -10,7 +10,7 @@ stringData:
 
   VM_HOST_IP: "192.168.0.151"
   VM_HOST_USERNAME: "ubuntu"
-  VM_HOST_PASSWORD: "*******"
+  VM_HOST_PASSWORD: "******"
 
   PORTAL_PORT: "5000"
 

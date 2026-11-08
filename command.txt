@@ -59,10 +59,7 @@ PY
 
 docker exec learning-labs python -c 'import os; p=os.getenv("MAIL_PASSWORD",""); print("Length:",len(p),"Contains spaces:", " " in p)'
 
-docker build -t learning-labs:1.0 .
-kind load docker-image learning-labs:1.0 --name multi-node-cluster
-kubectl rollout restart deployment/learning-labs -n learning-labs
-kubectl rollout status deployment/learning-labs -n learning-labs
+docker build -t learning-labs:1.0 . && kind load docker-image learning-labs:1.0 --name multi-node-cluster && kubectl rollout restart deployment/learning-labs -n learning-labs && kubectl rollout status deployment/learning-labs -n learning-labs
 
 
 

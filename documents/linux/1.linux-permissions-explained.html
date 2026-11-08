@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Permissions Explained</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #202938;
+            line-height: 1.65;
+        }
+        header {
+            background: #172554;
+            color: white;
+            padding: 28px 8%;
+        }
+        header h1 { margin: 0 0 8px; }
+        main {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        section {
+            background: white;
+            padding: 24px;
+            margin-bottom: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        h2 { color: #1d4ed8; }
+        h3 { color: #334155; margin-top: 24px; }
+        pre {
+            background: #111827;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 7px;
+            overflow-x: auto;
+        }
+        code { font-family: Consolas, monospace; }
+        .note {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 12px 16px;
+            margin: 16px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #dbe2ea;
+            padding: 10px;
+            text-align: left;
+        }
+        th { background: #eaf0f8; }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Linux Permissions Explained</h1>
+    <p>Linux administration | File ownership | Access control | Security</p>
+</header>
+
+<main>
+
+<section>
+    <h2>1. What Are Linux Permissions?</h2>
+    <p>
+        Linux permissions control who can read, modify, and execute files
+        and directories. They protect system files, application data,
+        configuration files, scripts, and user information from unauthorized access.
+    </p>
+    <p>
+        Every file and directory has an owner, an associated group, and
+        permission settings.
+    </p>
+    <pre><code>ls -l /etc/passwd
+
+-rw-r--r-- 1 root root 2847 /etc/passwd</code></pre>
+    <p>Understanding the output:</p>
+    <table>
+        <tr><th>Field</th><th>Meaning</th></tr>
+        <tr><td>-</td><td>File type: regular file</td></tr>
+        <tr><td>rw-r--r--</td><td>Permission settings</td></tr>
+        <tr><td>root</td><td>File owner</td></tr>
+        <tr><td>root</td><td>Group owner</td></tr>
+        <tr><td>2847</td><td>File size in bytes</td></tr>
+        <tr><td>/etc/passwd</td><td>File name</td></tr>
+    </table>
+</section>
+
+<section>
+    <h2>2. Linux Permission Categories</h2>
+    <p>Linux uses three permission categories:</p>
+    <table>
+        <tr><th>Category</th><th>Symbol</th><th>Description</th></tr>
+        <tr><td>Owner</td><td>u</td><td>The user who owns the file</td></tr>
+        <tr><td>Group</td><td>g</td><td>Users belonging to the file's group</td></tr>
+        <tr><td>Others</td><td>o</td><td>All other users</td></tr>
+    </table>
+</section>
+
+<section>
+    <h2>3. Permission Types</h2>
+    <table>
+        <tr><th>Permission</th><th>Symbol</th><th>Numeric Value</th><th>File Meaning</th><th>Directory Meaning</th></tr>
+        <tr><td>Read</td><td>r</td><td>4</td><td>Read file contents</td><td>List directory entries</td></tr>
+        <tr><td>Write</td><td>w</td><td>2</td><td>Modify file contents</td><td>Create, delete, or rename entries</td></tr>
+        <tr><td>Execute</td><td>x</td><td>1</td><td>Execute a program or script</td><td>Traverse or access entries by name</td></tr>
+        <tr><td>No permission</td><td>-</td><td>0</td><td>No access</td><td>No access</td></tr>
+    </table>
+    <div class="note">
+        Directory permissions behave differently from file permissions.
+        For example, execute permission on a directory allows a user to
+        traverse it, even if the user cannot list its contents.
+    </div>
+</section>
+
+<section>
+    <h2>4. Understanding Numeric Permissions</h2>
+    <p>Numeric permissions are calculated by adding permission values.</p>
+    <pre><code>Read    = 4
+Write   = 2
+Execute = 1
+
+7 = 4 + 2 + 1 = rwx
+6 = 4 + 2     = rw-
+5 = 4     + 1 = r-x
+4 = 4         = r--
+3 =     2 + 1 = -wx
+2 =     2     = -w-
+1 =         1 = --x
+0             = ---</code></pre>
+
+    <h3>Example: chmod 755</h3>
+    <pre><code>chmod 755 deploy.sh</code></pre>
+    <table>
+        <tr><th>Category</th><th>Value</th><th>Permission</th></tr>
+        <tr><td>Owner</td><td>7</td><td>rwx</td></tr>
+        <tr><td>Group</td><td>5</td><td>r-x</td></tr>
+        <tr><td>Others</td><td>5</td><td>r-x</td></tr>
+    </table>
+
+    <h3>Common Permission Combinations</h3>
+    <table>
+        <tr><th>Permission</th><th>Usage</th></tr>
+        <tr><td>644</td><td>Regular files that should be readable by everyone but writable by the owner</td></tr>
+        <tr><td>755</td><td>Executable scripts and directories</td></tr>
+        <tr><td>700</td><td>Private directories</td></tr>
+        <tr><td>600</td><td>Private configuration or key files</td></tr>
+        <tr><td>640</td><td>Files readable by owner and group</td></tr>
+        <tr><td>750</td><td>Directories accessible to owner and group</td></tr>
+        <tr><td>777</td><td>Everyone has full access; generally unsafe</td></tr>
+    </table>
+</section>
+
+<section>
+    <h2>5. chmod - Change File Permissions</h2>
+    <p>The chmod command changes permissions on files and directories.</p>
+
+    <h3>Numeric Method</h3>
+    <pre><code>chmod 755 deploy.sh
+chmod 644 application.conf
+chmod 700 /opt/application/secrets</code></pre>
+
+    <h3>Symbolic Method</h3>
+    <pre><code>chmod u+x deploy.sh
+chmod g+w shared.txt
+chmod o-r confidential.txt
+chmod u=rwx,g=rx,o= file.sh</code></pre>
+
+    <h3>Recursive Permissions</h3>
+    <pre><code>chmod -R 755 /opt/application</code></pre>
+    <div class="note">
+        Avoid blindly applying one permission to every file and directory.
+        Executable files, regular files, and directories often need different permissions.
+    </div>
+</section>
+
+<section>
+    <h2>6. chown - Change Ownership</h2>
+    <p>Use chown to change the owner or group associated with a file.</p>
+    <pre><code># Change owner
+sudo chown appuser application.log
+
+# Change owner and group
+sudo chown appuser:appgroup application.log
+
+# Change only group
+sudo chown :appgroup application.log
+
+# Change ownership recursively
+sudo chown -R appuser:appgroup /opt/application</code></pre>
+</section>
+
+<section>
+    <h2>7. chgrp - Change Group Ownership</h2>
+    <pre><code>sudo chgrp developers project.txt
+
+sudo chgrp -R developers /opt/project</code></pre>
+    <p>Use chgrp when only the group ownership needs to change.</p>
+</section>
+
+<section>
+    <h2>8. Directory Permissions Explained</h2>
+    <p>Directory permissions determine what users can do inside a directory.</p>
+    <table>
+        <tr><th>Permission</th><th>Effect</th></tr>
+        <tr><td>r</td><td>List directory entries</td></tr>
+        <tr><td>w</td><td>Create, delete, and rename entries, subject to other permission rules</td></tr>
+        <tr><td>x</td><td>Traverse the directory and access entries by name</td></tr>
+    </table>
+    <pre><code>mkdir project
+chmod 750 project
+ls -ld project</code></pre>
+</section>
+
+<section>
+    <h2>9. umask - Default Permission Mask</h2>
+    <p>
+        umask controls which permission bits are removed from the default
+        permissions when new files and directories are created.
+    </p>
+    <pre><code># Check current umask
+umask
+
+# Set umask
+umask 022
+
+# Create test objects
+touch test-file
+mkdir test-directory
+
+# Verify
+ls -l test-file
+ls -ld test-directory</code></pre>
+
+    <table>
+        <tr><th>Object</th><th>Base Permission</th><th>With umask 022</th></tr>
+        <tr><td>Regular file</td><td>666</td><td>644</td></tr>
+        <tr><td>Directory</td><td>777</td><td>755</td></tr>
+    </table>
+    <p>
+        A regular file is normally created without execute permission.
+        The resulting permissions can also be affected by the application
+        creating the file.
+    </p>
+</section>
+
+<section>
+    <h2>10. Special Permissions</h2>
+
+    <h3>SUID - Set User ID</h3>
+    <p>
+        On an executable file, SUID causes the program to run with the
+        effective user ID of the file owner.
+    </p>
+    <pre><code>ls -l /usr/bin/passwd
+chmod u+s program</code></pre>
+
+    <h3>SGID - Set Group ID</h3>
+    <p>
+        On an executable file, SGID sets the effective group ID for the
+        process. On a directory, newly created entries generally inherit
+        the directory's group.
+    </p>
+    <pre><code>chmod g+s shared-directory
+ls -ld shared-directory</code></pre>
+
+    <h3>Sticky Bit</h3>
+    <p>
+        On a directory, the sticky bit restricts deletion and renaming
+        of entries, typically allowing only the entry owner, directory
+        owner, or a privileged user to do so.
+    </p>
+    <pre><code>chmod +t /shared
+ls -ld /shared</code></pre>
+</section>
+
+<section>
+    <h2>11. Access Control Lists (ACL)</h2>
+    <p>
+        ACLs provide additional permissions for specific users and groups
+        beyond the traditional owner, group, and others permission model.
+    </p>
+    <pre><code># View ACL
+getfacl project.txt
+
+# Grant a user read and write access
+setfacl -m u:developer:rw project.txt
+
+# Grant a group read access
+setfacl -m g:developers:r project.txt
+
+# Remove a user's ACL entry
+setfacl -x u:developer project.txt
+
+# Remove extended ACL entries
+setfacl -b project.txt</code></pre>
+    <div class="note">
+        The ACL mask can limit the effective permissions of named users,
+        named groups, and the owning group. Use getfacl to inspect effective access.
+    </div>
+</section>
+
+<section>
+    <h2>12. Troubleshooting Permission Issues</h2>
+    <p>Useful commands for investigating permission problems:</p>
+    <pre><code># View permissions
+ls -l file.txt
+
+# View directory permissions
+ls -ld /opt/application
+
+# Inspect every directory in a path
+namei -l /opt/application/config/settings.conf
+
+# Check current user
+whoami
+
+# Check group membership
+id
+
+# Check ACL
+getfacl file.txt
+
+# Check ownership
+stat file.txt
+
+# Test whether a user can read a file
+sudo -u appuser test -r file.txt && echo "Readable" || echo "Not readable"
+
+# Test whether a user can write to a directory
+sudo -u appuser test -w /var/log/application && echo "Writable" || echo "Not writable"</code></pre>
+</section>
+
+<section>
+    <h2>13. Production Security Guidelines</h2>
+    <ul>
+        <li>Do not use chmod 777 as a routine permission fix.</li>
+        <li>Run services with dedicated non-root users where practical.</li>
+        <li>Keep private keys and credentials restricted.</li>
+        <li>Use group ownership for controlled shared access.</li>
+        <li>Inspect parent directory permissions when access fails.</li>
+        <li>Use ACLs when standard owner/group permissions are insufficient.</li>
+        <li>Verify permissions after deployments and container volume mounts.</li>
+        <li>Apply least-privilege access to application directories.</li>
+    </ul>
+</section>
+
+</main>
+
+<footer>
+    Linux Administration Training | Linux File Permissions
+</footer>
+
+</body>
+</html>

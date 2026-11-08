@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Permissions - Production Hands-on Lab</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #202938;
+            line-height: 1.65;
+        }
+        header {
+            background: #172554;
+            color: white;
+            padding: 28px 8%;
+        }
+        main {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        section {
+            background: white;
+            padding: 24px;
+            margin-bottom: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        h2 { color: #1d4ed8; }
+        h3 { color: #334155; margin-top: 22px; }
+        pre {
+            background: #111827;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 7px;
+            overflow-x: auto;
+        }
+        .scenario {
+            border-left: 5px solid #2563eb;
+        }
+        .warning {
+            background: #fff7ed;
+            border-left: 4px solid #ea580c;
+            padding: 12px 16px;
+            margin: 16px 0;
+        }
+        .task {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 12px 16px;
+            margin: 16px 0;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Linux Permissions - Production Hands-on Lab</h1>
+    <p>Production troubleshooting | Permission failures | Ownership | Security</p>
+</header>
+
+<main>
+
+<section>
+    <h2>Lab Overview</h2>
+    <p>
+        In this lab, you will reproduce permission-related failures similar
+        to those encountered in Linux production environments.
+    </p>
+    <p>For every scenario, follow this process:</p>
+    <ol>
+        <li>Understand the production incident.</li>
+        <li>Create the required users, groups, files, and directories.</li>
+        <li>Introduce the incorrect permissions deliberately.</li>
+        <li>Run commands as the affected user and reproduce the failure.</li>
+        <li>Investigate ownership, permissions, and parent directories.</li>
+        <li>Apply the correct fix.</li>
+        <li>Verify that the application or user can perform the required operation.</li>
+    </ol>
+
+    <div class="warning">
+        Run this lab only on a disposable Linux VM or test environment.
+        Do not execute these commands on a production server.
+    </div>
+</section>
+
+<section>
+    <h2>1. Prepare the Lab Environment</h2>
+    <p>Create the lab directory, users, and groups.</p>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab
+
+sudo groupadd labteam
+sudo groupadd labapp
+sudo groupadd labbackup
+
+sudo useradd -m -s /bin/bash labdeploy
+sudo useradd -m -s /bin/bash labapp
+sudo useradd -m -s /bin/bash labdeveloper
+sudo useradd -m -s /bin/bash labtester
+sudo useradd -m -s /bin/bash labbackup
+
+sudo usermod -aG labteam labdeveloper
+sudo usermod -aG labteam labtester
+sudo usermod -aG labapp labapp
+sudo usermod -aG labbackup labbackup
+
+sudo chown root:root /opt/linux-permissions-lab
+sudo chmod 755 /opt/linux-permissions-lab
+
+id labapp
+id labdeveloper
+id labtester</code></pre>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 1: Web Server Cannot Read Website Files</h2>
+    <p><strong>Production incident:</strong> A website returns HTTP 403 Forbidden after a deployment. The web server cannot read the application files.</p>
+
+    <h3>Step 1: Create website files</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/website
+
+echo "&lt;h1&gt;Learning Labs&lt;/h1&gt;" | sudo tee /opt/linux-permissions-lab/website/index.html
+
+sudo chown -R root:root /opt/linux-permissions-lab/website
+sudo chmod 700 /opt/linux-permissions-lab/website
+sudo chmod 600 /opt/linux-permissions-lab/website/index.html</code></pre>
+
+    <h3>Step 2: Reproduce the failure</h3>
+    <pre><code>sudo -u www-data cat /opt/linux-permissions-lab/website/index.html</code></pre>
+    <p>Expected result: Permission denied.</p>
+    <p>If your distribution does not have the www-data account, replace it with the actual web server service account.</p>
+
+    <h3>Step 3: Investigate</h3>
+    <pre><code>ls -ld /opt/linux-permissions-lab/website
+ls -l /opt/linux-permissions-lab/website
+namei -l /opt/linux-permissions-lab/website/index.html
+id www-data</code></pre>
+
+    <div class="task">
+        <strong>Your task:</strong> Give the web server account read access to
+        the website files and traversal access to the directories without
+        granting unnecessary write permissions.
+    </div>
+
+    <h3>Step 4: Fix</h3>
+    <pre><code>sudo chown -R root:www-data /opt/linux-permissions-lab/website
+
+sudo find /opt/linux-permissions-lab/website -type d -exec chmod 750 {} \;
+sudo find /opt/linux-permissions-lab/website -type f -exec chmod 640 {} \;</code></pre>
+
+    <h3>Step 5: Verify</h3>
+    <pre><code>sudo -u www-data cat /opt/linux-permissions-lab/website/index.html</code></pre>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 2: Application Cannot Read Configuration File</h2>
+    <p><strong>Production incident:</strong> An application fails during startup because its service account cannot read the database configuration file.</p>
+
+    <h3>Step 1: Create configuration</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/config
+
+echo "DB_HOST=localhost" | sudo tee /opt/linux-permissions-lab/config/application.conf
+
+sudo chown root:root /opt/linux-permissions-lab/config
+sudo chmod 755 /opt/linux-permissions-lab/config
+
+sudo chown root:root /opt/linux-permissions-lab/config/application.conf
+sudo chmod 600 /opt/linux-permissions-lab/config/application.conf</code></pre>
+
+    <h3>Step 2: Reproduce the failure</h3>
+    <pre><code>sudo -u labapp cat /opt/linux-permissions-lab/config/application.conf</code></pre>
+    <p>Expected result: Permission denied.</p>
+
+    <h3>Step 3: Investigate</h3>
+    <pre><code>ls -ld /opt/linux-permissions-lab/config
+ls -l /opt/linux-permissions-lab/config/application.conf
+id labapp</code></pre>
+
+    <div class="task">
+        <strong>Your task:</strong> Allow the application account to read
+        the configuration without allowing other users to access it.
+    </div>
+
+    <h3>Step 4: Fix</h3>
+    <pre><code>sudo chown root:labapp /opt/linux-permissions-lab/config
+sudo chmod 750 /opt/linux-permissions-lab/config
+
+sudo chown root:labapp /opt/linux-permissions-lab/config/application.conf
+sudo chmod 640 /opt/linux-permissions-lab/config/application.conf</code></pre>
+
+    <h3>Step 5: Verify</h3>
+    <pre><code>sudo -u labapp cat /opt/linux-permissions-lab/config/application.conf
+
+sudo -u labdeveloper cat /opt/linux-permissions-lab/config/application.conf</code></pre>
+    <p>The application user should be able to read the file. The developer should not.</p>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 3: Application Cannot Write to Log Directory</h2>
+    <p><strong>Production incident:</strong> An application starts successfully but fails when it attempts to write logs.</p>
+
+    <h3>Step 1: Create log directory</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/logs
+sudo touch /opt/linux-permissions-lab/logs/application.log
+
+sudo chown root:root /opt/linux-permissions-lab/logs
+sudo chmod 755 /opt/linux-permissions-lab/logs
+
+sudo chown root:root /opt/linux-permissions-lab/logs/application.log
+sudo chmod 644 /opt/linux-permissions-lab/logs/application.log</code></pre>
+
+    <h3>Step 2: Reproduce the failure</h3>
+    <pre><code>sudo -u labapp sh -c 'echo "Application started" >> /opt/linux-permissions-lab/logs/application.log'</code></pre>
+    <p>Expected result: Permission denied.</p>
+
+    <h3>Step 3: Investigate</h3>
+    <pre><code>ls -ld /opt/linux-permissions-lab/logs
+ls -l /opt/linux-permissions-lab/logs/application.log</code></pre>
+
+    <div class="task">
+        <strong>Your task:</strong> Give the application account the required
+        write access without making the directory writable by everyone.
+    </div>
+
+    <h3>Step 4: Fix</h3>
+    <pre><code>sudo chown -R labapp:labapp /opt/linux-permissions-lab/logs
+sudo chmod 750 /opt/linux-permissions-lab/logs
+sudo chmod 640 /opt/linux-permissions-lab/logs/application.log</code></pre>
+
+    <h3>Step 5: Verify</h3>
+    <pre><code>sudo -u labapp sh -c 'echo "Application started" >> /opt/linux-permissions-lab/logs/application.log'
+
+sudo cat /opt/linux-permissions-lab/logs/application.log</code></pre>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 4: Shared Directory Access Between Developers</h2>
+    <p><strong>Production incident:</strong> Developers can create files, but other team members cannot modify them.</p>
+
+    <h3>Step 1: Create shared directory</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/shared
+
+sudo chown root:labteam /opt/linux-permissions-lab/shared
+sudo chmod 750 /opt/linux-permissions-lab/shared
+
+sudo -u labdeveloper touch /opt/linux-permissions-lab/shared/project.txt</code></pre>
+
+    <h3>Step 2: Reproduce the failure</h3>
+    <pre><code>sudo -u labtester sh -c 'echo "Updated by tester" >> /opt/linux-permissions-lab/shared/project.txt'</code></pre>
+    <p>Expected result: Permission denied.</p>
+
+    <h3>Step 3: Investigate</h3>
+    <pre><code>ls -ld /opt/linux-permissions-lab/shared
+ls -l /opt/linux-permissions-lab/shared/project.txt
+
+id labdeveloper
+id labtester</code></pre>
+
+    <div class="task">
+        <strong>Your task:</strong> Configure the shared directory so that
+        team members can collaborate and new files inherit the shared group.
+    </div>
+
+    <h3>Step 4: Fix</h3>
+    <pre><code>sudo chown root:labteam /opt/linux-permissions-lab/shared
+sudo chmod 2770 /opt/linux-permissions-lab/shared
+
+sudo chmod g+s /opt/linux-permissions-lab/shared</code></pre>
+
+    <p>Start a new login session for users if their supplementary group membership has changed.</p>
+
+    <h3>Step 5: Verify</h3>
+    <pre><code>sudo -u labdeveloper sh -c 'umask 0002; echo "Created by developer" > /opt/linux-permissions-lab/shared/new-file.txt'
+
+ls -l /opt/linux-permissions-lab/shared
+
+sudo -u labtester sh -c 'echo "Updated by tester" >> /opt/linux-permissions-lab/shared/new-file.txt'
+
+cat /opt/linux-permissions-lab/shared/new-file.txt</code></pre>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 5: SSH Private Key Permission Error</h2>
+    <p><strong>Production incident:</strong> SSH refuses to use a private key because its permissions are too open.</p>
+
+    <h3>Step 1: Generate a test key</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/ssh
+
+sudo ssh-keygen -t ed25519 \
+    -f /opt/linux-permissions-lab/ssh/id_ed25519 \
+    -N ""
+
+sudo chown root:root /opt/linux-permissions-lab/ssh/id_ed25519*
+sudo chmod 644 /opt/linux-permissions-lab/ssh/id_ed25519
+sudo chmod 644 /opt/linux-permissions-lab/ssh/id_ed25519.pub</code></pre>
+
+    <h3>Step 2: Reproduce the permission issue</h3>
+    <pre><code>ssh -i /opt/linux-permissions-lab/ssh/id_ed25519 localhost</code></pre>
+    <p>Expected result: SSH warns that the private key is accessible by others and refuses to use it.</p>
+
+    <h3>Step 3: Fix</h3>
+    <pre><code>sudo chmod 700 /opt/linux-permissions-lab/ssh
+sudo chmod 600 /opt/linux-permissions-lab/ssh/id_ed25519
+sudo chmod 644 /opt/linux-permissions-lab/ssh/id_ed25519.pub</code></pre>
+
+    <h3>Step 4: Verify</h3>
+    <pre><code>ls -ld /opt/linux-permissions-lab/ssh
+ls -l /opt/linux-permissions-lab/ssh/</code></pre>
+    <p>For a real SSH login, the key must also be owned by the account using it and stored in an accessible directory.</p>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 6: Sensitive Configuration Exposed to Unauthorized Users</h2>
+    <p><strong>Production incident:</strong> A database configuration file contains credentials and is readable by unauthorized users.</p>
+
+    <h3>Step 1: Create a sensitive file</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/secrets
+
+echo "DB_PASSWORD=TestPassword123" | sudo tee /opt/linux-permissions-lab/secrets/db.conf
+
+sudo chown root:root /opt/linux-permissions-lab/secrets
+sudo chmod 755 /opt/linux-permissions-lab/secrets
+
+sudo chown root:root /opt/linux-permissions-lab/secrets/db.conf
+sudo chmod 644 /opt/linux-permissions-lab/secrets/db.conf</code></pre>
+
+    <h3>Step 2: Reproduce the security issue</h3>
+    <pre><code>sudo -u labdeveloper cat /opt/linux-permissions-lab/secrets/db.conf</code></pre>
+    <p>Expected result: The unauthorized user can read the credentials.</p>
+
+    <h3>Step 3: Fix</h3>
+    <pre><code>sudo chown root:labapp /opt/linux-permissions-lab/secrets
+sudo chmod 750 /opt/linux-permissions-lab/secrets
+
+sudo chown root:labapp /opt/linux-permissions-lab/secrets/db.conf
+sudo chmod 640 /opt/linux-permissions-lab/secrets/db.conf</code></pre>
+
+    <h3>Step 4: Verify</h3>
+    <pre><code>sudo -u labapp cat /opt/linux-permissions-lab/secrets/db.conf
+
+sudo -u labdeveloper cat /opt/linux-permissions-lab/secrets/db.conf</code></pre>
+    <p>The application user should be able to read the file. The developer should receive Permission denied.</p>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 7: Docker Container Cannot Write to a Mounted Directory</h2>
+    <p><strong>Production incident:</strong> An application container cannot write to a host-mounted directory because the container process UID does not have write permission.</p>
+
+    <h3>Step 1: Create host directory</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/docker-data
+sudo chown root:root /opt/linux-permissions-lab/docker-data
+sudo chmod 755 /opt/linux-permissions-lab/docker-data</code></pre>
+
+    <h3>Step 2: Run a container as a non-root user</h3>
+    <pre><code>docker run -d \
+  --name permission-test \
+  --user 10001:10001 \
+  -v /opt/linux-permissions-lab/docker-data:/data \
+  ubuntu:24.04 \
+  sleep infinity</code></pre>
+
+    <h3>Step 3: Reproduce the failure</h3>
+    <pre><code>docker exec permission-test sh -c 'echo "container data" > /data/test.txt'</code></pre>
+    <p>Expected result: Permission denied.</p>
+
+    <h3>Step 4: Investigate</h3>
+    <pre><code>ls -ld /opt/linux-permissions-lab/docker-data
+
+docker exec permission-test id</code></pre>
+
+    <div class="task">
+        <strong>Your task:</strong> Make the host directory writable by the
+        container process without running the container as root.
+    </div>
+
+    <h3>Step 5: Fix</h3>
+    <pre><code>sudo chown 10001:10001 /opt/linux-permissions-lab/docker-data
+sudo chmod 750 /opt/linux-permissions-lab/docker-data</code></pre>
+
+    <h3>Step 6: Verify</h3>
+    <pre><code>docker exec permission-test sh -c 'echo "container data" > /data/test.txt'
+
+docker exec permission-test cat /data/test.txt</code></pre>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 8: Kubernetes Pod Cannot Write to Persistent Volume</h2>
+    <p><strong>Production incident:</strong> An application pod runs as a non-root user but cannot write to its mounted persistent volume.</p>
+
+    <div class="warning">
+        This exercise uses hostPath for a single-node test cluster. It is
+        not a production storage design. The pod must run on the node where
+        the host directory exists.
+    </div>
+
+    <h3>Step 1: Create the host directory on the Kubernetes node</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/k8s-data
+sudo chown root:root /opt/linux-permissions-lab/k8s-data
+sudo chmod 755 /opt/linux-permissions-lab/k8s-data</code></pre>
+
+    <h3>Step 2: Create Kubernetes resources</h3>
+    <pre><code>cat &lt;&lt;'EOF' &gt; permission-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: permission-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /opt/linux-permissions-lab/k8s-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: permission-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+EOF
+
+kubectl apply -f permission-pv.yaml</code></pre>
+
+    <h3>Step 3: Create a pod running as UID 10001</h3>
+    <pre><code>cat &lt;&lt;'EOF' &gt; permission-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: permission-test
+  namespace: default
+spec:
+  containers:
+    - name: app
+      image: ubuntu:24.04
+      command: ["sh", "-c", "sleep infinity"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      volumeMounts:
+        - name: app-data
+          mountPath: /data
+  volumes:
+    - name: app-data
+      persistentVolumeClaim:
+        claimName: permission-pvc
+EOF
+
+kubectl apply -f permission-pod.yaml
+
+kubectl get pod permission-test
+kubectl get pv,pvc</code></pre>
+
+    <h3>Step 4: Reproduce the failure</h3>
+    <pre><code>kubectl exec permission-test -- sh -c 'echo "Kubernetes data" > /data/test.txt'</code></pre>
+    <p>Expected result: Permission denied.</p>
+
+    <h3>Step 5: Fix the host directory permissions</h3>
+    <pre><code>sudo chown 10001:10001 /opt/linux-permissions-lab/k8s-data
+sudo chmod 750 /opt/linux-permissions-lab/k8s-data</code></pre>
+
+    <h3>Step 6: Verify</h3>
+    <pre><code>kubectl exec permission-test -- sh -c 'echo "Kubernetes data" > /data/test.txt'
+
+kubectl exec permission-test -- cat /data/test.txt</code></pre>
+
+    <div class="task">
+        <strong>Additional challenge:</strong> Test fsGroup in the pod's
+        securityContext and inspect the resulting volume permissions.
+        Do not assume every storage driver handles ownership changes identically.
+    </div>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 9: Incorrect chmod 777 Applied to Application Directory</h2>
+    <p><strong>Production incident:</strong> An administrator applies chmod 777 to resolve an application access issue, unintentionally allowing every local user to modify application files.</p>
+
+    <h3>Step 1: Create the directory</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/application
+echo "production application" | sudo tee /opt/linux-permissions-lab/application/app.conf
+
+sudo chmod -R 777 /opt/linux-permissions-lab/application</code></pre>
+
+    <h3>Step 2: Verify the security problem</h3>
+    <pre><code>sudo -u labdeveloper sh -c 'echo "unauthorized change" >> /opt/linux-permissions-lab/application/app.conf'
+
+cat /opt/linux-permissions-lab/application/app.conf</code></pre>
+
+    <h3>Step 3: Fix</h3>
+    <pre><code>sudo chown -R root:labapp /opt/linux-permissions-lab/application
+
+sudo find /opt/linux-permissions-lab/application -type d -exec chmod 750 {} \;
+sudo find /opt/linux-permissions-lab/application -type f -exec chmod 640 {} \;</code></pre>
+
+    <h3>Step 4: Verify</h3>
+    <pre><code>sudo -u labapp cat /opt/linux-permissions-lab/application/app.conf
+
+sudo -u labdeveloper sh -c 'echo "unauthorized change" >> /opt/linux-permissions-lab/application/app.conf'</code></pre>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 10: Systemd Service Fails Because a Script Is Not Executable</h2>
+    <p><strong>Production incident:</strong> A systemd service fails to start because its startup script does not have execute permission.</p>
+
+    <h3>Step 1: Create the script</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/systemd-app
+
+sudo tee /opt/linux-permissions-lab/systemd-app/start.sh &lt;&lt;'EOF'
+#!/bin/bash
+echo "Application started"
+sleep infinity
+EOF
+
+sudo chown -R labapp:labapp /opt/linux-permissions-lab/systemd-app
+sudo chmod 640 /opt/linux-permissions-lab/systemd-app/start.sh</code></pre>
+
+    <h3>Step 2: Create the service</h3>
+    <pre><code>sudo tee /etc/systemd/system/permission-test.service &lt;&lt;'EOF'
+[Unit]
+Description=Linux Permission Test Application
+After=network.target
+
+[Service]
+Type=simple
+User=labapp
+Group=labapp
+ExecStart=/opt/linux-permissions-lab/systemd-app/start.sh
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+EOF</code></pre>
+
+    <h3>Step 3: Reproduce the failure</h3>
+    <pre><code>sudo systemctl daemon-reload
+sudo systemctl start permission-test.service
+
+sudo systemctl status permission-test.service
+sudo journalctl -u permission-test.service -n 30 --no-pager</code></pre>
+
+    <h3>Step 4: Fix</h3>
+    <pre><code>sudo chmod 750 /opt/linux-permissions-lab/systemd-app/start.sh
+
+sudo systemctl restart permission-test.service
+sudo systemctl status permission-test.service</code></pre>
+</section>
+
+<section class="scenario">
+    <h2>Scenario 11: Incorrect umask Causes Shared File Access Problems</h2>
+    <p><strong>Production incident:</strong> Files created by one team member are not writable by other members of the same group.</p>
+
+    <h3>Step 1: Create a test directory</h3>
+    <pre><code>sudo mkdir -p /opt/linux-permissions-lab/umask
+sudo chown labdeveloper:labteam /opt/linux-permissions-lab/umask
+sudo chmod 2770 /opt/linux-permissions-lab/umask</code></pre>
+
+    <h3>Step 2: Create a file with a restrictive umask</h3>
+    <pre><code>sudo -u labdeveloper sh -c '
+umask 0077
+touch /opt/linux-permissions-lab/umask/restricted.txt
+ls -l /opt/linux-permissions-lab/umask/restricted.txt
+'</code></pre>
+
+    <h3>Step 3: Reproduce the failure</h3>
+    <pre><code>sudo -u labtester sh -c 'echo "Team update" >> /opt/linux-permissions-lab/umask/restricted.txt'</code></pre>
+
+    <h3>Step 4: Fix</h3>
+    <pre><code>sudo -u labdeveloper sh -c '
+umask 0002
+touch /opt/linux-permissions-lab/umask/shared.txt
+ls -l /opt/linux-permissions-lab/umask/shared.txt
+'</code></pre>
+
+    <p>For the existing restricted file, correct its permissions separately:</p>
+    <pre><code>sudo chgrp labteam /opt/linux-permissions-lab/umask/restricted.txt
+sudo chmod 660 /opt/linux-permissions-lab/umask/restricted.txt</code></pre>
+
+    <h3>Step 5: Verify</h3>
+    <pre><code>sudo -u labtester sh -c 'echo "Team update" >> /opt/linux-permissions-lab/umask/restricted.txt'
+
+cat /opt/linux-permissions-lab/umask/restricted.txt</code></pre>
+</section>
+
+<section>
+    <h2>12. Final Production Troubleshooting Challenge</h2>
+    <p><strong>Incident:</strong> A deployment has completed, but the application is not functioning correctly.</p>
+
+    <p>You have been provided with the following symptoms:</p>
+    <ul>
+        <li>The application service cannot read its configuration file.</li>
+        <li>The application cannot write to its log directory.</li>
+        <li>Developers cannot collaborate on files in the shared directory.</li>
+    </ul>
+
+    <h3>Your task</h3>
+    <ol>
+        <li>Inspect the ownership of every relevant file and directory.</li>
+        <li>Check permissions on all parent directories.</li>
+        <li>Identify the Linux account running the application.</li>
+        <li>Check supplementary group membership.</li>
+        <li>Reproduce each failure using sudo -u.</li>
+        <li>Fix permissions using chmod, chown, chgrp, or ACLs as appropriate.</li>
+        <li>Verify access as the actual service and developer users.</li>
+    </ol>
+
+    <pre><code># Useful investigation commands
+
+whoami
+id labapp
+
+ls -l /opt/linux-permissions-lab/
+namei -l /opt/linux-permissions-lab/config/application.conf
+
+stat /opt/linux-permissions-lab/config/application.conf
+getfacl /opt/linux-permissions-lab/config/application.conf
+
+sudo -u labapp test -r /opt/linux-permissions-lab/config/application.conf
+sudo -u labapp test -w /opt/linux-permissions-lab/logs</code></pre>
+
+    <div class="task">
+        <strong>Completion criteria:</strong> The application can read its
+        configuration and write logs. Developers can collaborate through
+        the shared directory. Unauthorized users cannot access sensitive files.
+        No directory or file should require chmod 777.
+    </div>
+</section>
+
+<section>
+    <h2>13. Cleanup</h2>
+    <p>Run these commands after completing the lab.</p>
+    <pre><code># Remove test systemd service
+sudo systemctl stop permission-test.service 2>/dev/null || true
+sudo systemctl disable permission-test.service 2>/dev/null || true
+sudo rm -f /etc/systemd/system/permission-test.service
+sudo systemctl daemon-reload
+
+# Remove Docker test container
+docker rm -f permission-test 2>/dev/null || true
+
+# Remove Kubernetes test resources
+kubectl delete pod permission-test --ignore-not-found
+kubectl delete pvc permission-pvc --ignore-not-found
+kubectl delete pv permission-pv --ignore-not-found
+
+# Remove lab files
+sudo rm -rf /opt/linux-permissions-lab
+
+# Remove lab users
+sudo userdel -r labdeploy 2>/dev/null || true
+sudo userdel -r labapp 2>/dev/null || true
+sudo userdel -r labdeveloper 2>/dev/null || true
+sudo userdel -r labtester 2>/dev/null || true
+sudo userdel -r labbackup 2>/dev/null || true
+
+# Remove lab groups
+sudo groupdel labteam 2>/dev/null || true
+sudo groupdel labapp 2>/dev/null || true
+sudo groupdel labbackup 2>/dev/null || true</code></pre>
+</section>
+
+</main>
+
+<footer>
+    Linux Administration Training | Production Permissions Lab
+</footer>
+
+</body>
+</html>

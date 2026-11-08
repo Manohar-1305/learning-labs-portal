@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
   <head>
@@ -19,13 +18,17 @@
         position: fixed;
         inset: 0;
         z-index: 999999;
-        display: flex;
+        display: none;
         align-items: center;
         justify-content: center;
         padding: 20px;
         background: rgba(0, 0, 0, 0.78);
         backdrop-filter: blur(6px);
         animation: bannerFadeIn 0.3s ease;
+      }
+
+      .learning-banner-overlay.visible {
+        display: flex;
       }
 
       .learning-banner-container {
@@ -67,7 +70,9 @@
         font-size: 28px;
         line-height: 1;
         cursor: pointer;
-        transition: background 0.2s ease, transform 0.2s ease;
+        transition:
+          background 0.2s ease,
+          transform 0.2s ease;
       }
 
       .learning-banner-close:hover {
@@ -127,22 +132,26 @@
           <a class="nav-link" href="/admin">Admin</a>
           {% endif %}
 
-          <a class="nav-link" href="/new-account" target="_blank" rel="noopener">
+          <a
+            class="nav-link"
+            href="/new-account"
+            target="_blank"
+            rel="noopener"
+          >
             Add account
           </a>
 
-          <a class="contribute-btn" href="/contribute">
-            Contribute
-          </a>
+          <a class="contribute-btn" href="/contribute"> Contribute </a>
 
           {% if session.get('user') or session.get('username') %}
 
-          <a class="suggest-lab-btn" href="/suggest-lab">
-            Suggest a Lab
-          </a>
+          <a class="suggest-lab-btn" href="/suggest-lab"> Suggest a Lab </a>
 
           <span class="user-welcome">
-            Welcome, <strong>{{ session.get('username') or session.get('user') }}</strong>
+            Welcome,
+            <strong
+              >{{ session.get('username') or session.get('user') }}</strong
+            >
           </span>
 
           <a class="logout-btn" href="/logout">Logout</a>
@@ -156,7 +165,8 @@
       <div class="contribution-banner">
         <p>
           You may contribute and learn to help keep this lab up and running.
-          Your support helps us maintain and improve these learning environments for everyone.
+          Your support helps us maintain and improve these learning environments
+          for everyone.
         </p>
       </div>
 
@@ -170,10 +180,9 @@
           </h1>
 
           <p>
-            Explore Ansible, Jenkins and Bash through hands-on labs.
-            Work with real commands, practise automation and build
-            confidence using the tools you'll encounter in real
-            technical environments.
+            Explore Ansible, Jenkins and Bash through hands-on labs. Work with
+            real commands, practise automation and build confidence using the
+            tools you'll encounter in real technical environments.
           </p>
 
           <div class="hero-tags">
@@ -201,7 +210,9 @@
 
               <br />
 
-              <p><span class="terminal-prompt">$</span> systemctl status jenkins</p>
+              <p>
+                <span class="terminal-prompt">$</span> systemctl status jenkins
+              </p>
               <p class="terminal-success">Active: active (running)</p>
 
               <br />
@@ -211,7 +222,10 @@
 
               <br />
 
-              <p><span class="terminal-prompt">$</span> <span class="terminal-cursor">_</span></p>
+              <p>
+                <span class="terminal-prompt">$</span>
+                <span class="terminal-cursor">_</span>
+              </p>
             </div>
           </div>
         </div>
@@ -232,13 +246,8 @@
           >
             <div class="lab-card-top">
               <div class="lab-icon" aria-hidden="true">
-                {% if slug == "ansible" %}
-                  A
-                {% elif slug == "jenkins" %}
-                  J
-                {% else %}
-                  B
-                {% endif %}
+                {% if slug == "ansible" %} A {% elif slug == "jenkins" %} J {%
+                else %} B {% endif %}
               </div>
 
               <span class="lab-number">
@@ -248,15 +257,9 @@
 
             <div class="lab-card-content">
               <h3>
-                {% if slug == "ansible" %}
-                  Ansible Lab
-                {% elif slug == "jenkins" %}
-                  Jenkins Lab
-                {% elif slug == "bash" %}
-                  Bash Lab
-                {% else %}
-                  {{ lab.title }}
-                {% endif %}
+                {% if slug == "ansible" %} Ansible Lab {% elif slug == "jenkins"
+                %} Jenkins Lab {% elif slug == "bash" %} Bash Lab {% else %} {{
+                lab.title }} {% endif %}
               </h3>
 
               <p>{{ lab.description }}</p>
@@ -277,6 +280,7 @@
       </footer>
     </main>
 
+    {% if session.get('user') or session.get('username') %}
     <div class="learning-banner-overlay" id="learningBannerOverlay">
       <div class="learning-banner-container">
         <button
@@ -296,27 +300,42 @@
     </div>
 
     <script>
-      const learningBannerOverlay = document.getElementById("learningBannerOverlay");
-      const learningBannerClose = document.getElementById("learningBannerClose");
+      (() => {
+        const STORAGE_KEY = "learningLabsBannerShown";
 
-      function closeLearningBanner() {
-        learningBannerOverlay.style.display = "none";
-      }
+        const overlay = document.getElementById("learningBannerOverlay");
+        const closeButton = document.getElementById("learningBannerClose");
 
-      learningBannerClose.addEventListener("click", closeLearningBanner);
+        if (!overlay || !closeButton) return;
 
-      learningBannerOverlay.addEventListener("click", function (event) {
-        if (event.target === learningBannerOverlay) {
-          closeLearningBanner();
+        try {
+          if (sessionStorage.getItem(STORAGE_KEY) !== "true") {
+            overlay.classList.add("visible");
+            sessionStorage.setItem(STORAGE_KEY, "true");
+          }
+        } catch (_) {
+          overlay.classList.add("visible");
         }
-      });
 
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-          closeLearningBanner();
+        function closeBanner() {
+          overlay.classList.remove("visible");
         }
-      });
+
+        closeButton.addEventListener("click", closeBanner);
+
+        overlay.addEventListener("click", (event) => {
+          if (event.target === overlay) {
+            closeBanner();
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            closeBanner();
+          }
+        });
+      })();
     </script>
+    {% endif %}
   </body>
 </html>
-

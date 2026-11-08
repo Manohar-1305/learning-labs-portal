@@ -380,8 +380,13 @@ function writeBusyBanner(kind) {
 
     busyBannerShown[container] = kind;
 
-writeTerminal(container, `\r\n\x1b[33m[lab] ${message}\x1b[0m\r\n` +
-  "\x1b[33m[lab] The terminal will connect automatically when the server is ready. Please wait.\x1b[0m\r\n");
+    writeTerminal(
+      container,
+      `\r\n\x1b[33m[lab] ${message}\x1b[0m\r\n` +
+        "\x1b[33m[lab] The terminal will connect automatically when the server is ready.\x1b[0m\r\n" +
+        "\x1b[33m[lab] Please wait.\x1b[0m\r\n",
+    );
+  });
 
   labBusyMessageActive = true;
   updateTerminalStateLabel();

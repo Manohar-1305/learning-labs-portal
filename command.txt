@@ -66,6 +66,7 @@ kubectl rollout status deployment/learning-labs -n learning-labs
 
 
 
+
 docker exec -it postgres psql -U learning_user -d learning_labs -c 'SELECT * FROM lab_recommendations ORDER BY created_at DESC;'
 
 docker exec -it postgres psql -U learning_user -d learning_labs

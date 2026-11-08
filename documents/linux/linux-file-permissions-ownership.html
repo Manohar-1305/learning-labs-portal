@@ -1,0 +1,1776 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux File Permissions - Real-Time Production Scenarios</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="documents.css">
+
+    <style>
+        :root {
+            --surface: #121b2e;
+            --border: #2a3954;
+            --text: #edf3ff;
+            --blue: #78a7ff;
+            --green: #42d6a0;
+            --muted: #a9b8d0;
+            --warning: #ffcc66;
+            --danger: #ff7777;
+        }
+
+        body {
+            background: var(--surface);
+            color: var(--text);
+            font-family: "Segoe UI", Arial, sans-serif;
+            line-height: 1.7;
+            padding: 24px;
+        }
+
+        h1, h2, h3 {
+            color: var(--text);
+        }
+
+        h1 {
+            font-size: 30px;
+            margin-bottom: 12px;
+        }
+
+        h2 {
+            color: var(--blue);
+            margin-top: 38px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h3 {
+            color: var(--green);
+            margin-top: 25px;
+        }
+
+        p, li {
+            color: var(--muted);
+        }
+
+        .intro {
+            background: #192741;
+            border-left: 4px solid var(--blue);
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .code-box {
+            background: #0b1322;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 16px 0;
+            overflow: hidden;
+        }
+
+        .code-label {
+            background: #1d2c46;
+            color: var(--green);
+            padding: 9px 14px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        pre {
+            padding: 16px;
+            margin: 0;
+            overflow-x: auto;
+            color: #e5edff;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 13px;
+        }
+
+        .note {
+            background: #192b38;
+            border-left: 4px solid var(--green);
+            padding: 14px;
+            border-radius: 6px;
+            margin: 18px 0;
+            color: var(--muted);
+        }
+
+        .important {
+            background: #382a1b;
+            border-left: 4px solid var(--warning);
+            padding: 14px;
+            border-radius: 6px;
+            margin: 18px 0;
+            color: #ffe2a6;
+        }
+
+        .danger {
+            background: #351f27;
+            border-left: 4px solid var(--danger);
+            padding: 14px;
+            border-radius: 6px;
+            margin: 18px 0;
+            color: #ffc1c1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            display: block;
+            overflow-x: auto;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 11px;
+            text-align: left;
+            color: var(--muted);
+            min-width: 100px;
+        }
+
+        th {
+            background: #1d2c46;
+            color: var(--text);
+        }
+
+        .checklist {
+            background: #192741;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 18px;
+            margin: 20px 0;
+        }
+
+        .checklist li {
+            margin: 9px 0;
+        }
+
+        .scenario {
+            background: #17243a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 18px;
+            margin: 28px 0;
+        }
+
+        .scenario h3 {
+            margin-top: 0;
+        }
+
+        .step {
+            color: var(--blue);
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .video-container {
+            margin: 25px 0;
+        }
+
+        .video-container iframe {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: 0;
+            border-radius: 8px;
+        }
+
+        .video-toggle {
+            background: #1d2c46;
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .video-content {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 14px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            pre {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="document-content">
+
+    <h1>Linux File Permissions and Ownership - Real-Time Production Scenarios</h1>
+
+    <div class="intro">
+        <p>
+            In a production server, file permissions decide who can read,
+            change, execute, or access a file or directory.
+        </p>
+
+        <p>
+            A permission problem can stop a website, prevent an application
+            from starting, block a deployment, or cause a backup to fail.
+        </p>
+
+        <p>
+            In this lesson, we will work through real situations that Linux
+            administrators and DevOps engineers face in production.
+            Each situation includes the problem, investigation commands,
+            the correct fix, and verification.
+        </p>
+    </div>
+
+    <h2>1. Understanding Linux File Permissions</h2>
+
+    <p>
+        Every Linux file and directory has an owner, a group, and permissions.
+        These permissions decide what different users can do.
+    </p>
+
+    <p>
+        Run the following command to see the permissions of files in the
+        current directory.
+    </p>
+
+    <div class="code-box">
+        <div class="code-label">Command</div>
+        <pre><code>ls -l</code></pre>
+    </div>
+
+    <p>Example output:</p>
+
+    <div class="code-box">
+        <div class="code-label">Output</div>
+        <pre><code>-rw-r--r-- 1 root root 1024 Nov 08 app.conf
+drwxr-x--- 2 root developers 4096 Nov 08 reports
+-rwxr-xr-x 1 root root  250 Nov 08 deploy.sh</code></pre>
+    </div>
+
+    <p>Consider this permission:</p>
+
+    <div class="code-box">
+        <div class="code-label">Permission structure</div>
+        <pre><code>- rw- r-- r--
+  |   |   |
+  |   |   └── Others
+  |   └────── Group
+  └────────── Owner</code></pre>
+    </div>
+
+    <table>
+        <tr>
+            <th>Permission</th>
+            <th>Meaning for a file</th>
+            <th>Meaning for a directory</th>
+        </tr>
+        <tr>
+            <td>Read (r)</td>
+            <td>View file contents</td>
+            <td>List directory contents</td>
+        </tr>
+        <tr>
+            <td>Write (w)</td>
+            <td>Modify file contents</td>
+            <td>Create, delete, or rename entries</td>
+        </tr>
+        <tr>
+            <td>Execute (x)</td>
+            <td>Run the file as a program</td>
+            <td>Enter or pass through the directory</td>
+        </tr>
+    </table>
+
+    <h2>2. Numeric Permissions: 755, 644, 750 and 600</h2>
+
+    <p>
+        Linux also represents permissions using numbers. You will see
+        these numbers frequently in production commands and deployment scripts.
+    </p>
+
+    <table>
+        <tr>
+            <th>Number</th>
+            <th>Permission</th>
+        </tr>
+        <tr><td>0</td><td>---</td></tr>
+        <tr><td>1</td><td>--x</td></tr>
+        <tr><td>2</td><td>-w-</td></tr>
+        <tr><td>3</td><td>-wx</td></tr>
+        <tr><td>4</td><td>r--</td></tr>
+        <tr><td>5</td><td>r-x</td></tr>
+        <tr><td>6</td><td>rw-</td></tr>
+        <tr><td>7</td><td>rwx</td></tr>
+    </table>
+
+    <p>
+        Each number represents the owner, group, or others, in that order.
+    </p>
+
+    <table>
+        <tr>
+            <th>Permission</th>
+            <th>Typical use</th>
+        </tr>
+        <tr><td>755</td><td>Directories and executable scripts that others may access</td></tr>
+        <tr><td>644</td><td>Publicly readable configuration or website files</td></tr>
+        <tr><td>750</td><td>Private application directories</td></tr>
+        <tr><td>640</td><td>Files readable by the owner and an approved group</td></tr>
+        <tr><td>600</td><td>Private files such as SSH keys</td></tr>
+        <tr><td>700</td><td>Private directories such as an SSH directory</td></tr>
+    </table>
+
+    <div class="code-box">
+        <div class="code-label">Examples</div>
+        <pre><code>chmod 755 deploy.sh
+chmod 644 app.conf
+chmod 750 /opt/myapp
+chmod 640 /etc/myapp/app.conf
+chmod 600 /etc/myapp/secret.env</code></pre>
+    </div>
+
+    <div class="important">
+        These are common examples, not rules for every file. Always decide
+        permissions based on which users actually need access.
+    </div>
+
+    <h2>3. Production Scenario: Website Is Showing Permission Denied</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            A company hosts its website on an Ubuntu server using Nginx.
+            The website was working yesterday. After a new deployment,
+            users started receiving a 403 Forbidden error.
+        </p>
+
+        <p>
+            The deployment team copied the website files to
+            <code>/var/www/html</code>. However, the Nginx worker cannot
+            read some of the newly copied files.
+        </p>
+
+        <p><strong>Website directory:</strong></p>
+
+        <div class="code-box">
+            <div class="code-label">Directory structure</div>
+            <pre><code>/var/www/html/
+├── index.html
+├── css/
+│   └── style.css
+└── images/
+    └── logo.png</code></pre>
+        </div>
+
+        <p class="step">Step 1: Check the directory permissions</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>ls -ld /var/www
+ls -ld /var/www/html
+ls -l /var/www/html</code></pre>
+        </div>
+
+        <p>
+            You may find that the files belong to the deployment user and
+            have permissions that prevent the Nginx worker from reading them.
+        </p>
+
+        <p class="step">Step 2: Check which user Nginx is running as</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>ps -eo user,group,comm | grep nginx</code></pre>
+        </div>
+
+        <p>
+            On Ubuntu, the Nginx worker commonly runs as <code>www-data</code>.
+            Confirm the actual user on your server instead of assuming it.
+        </p>
+
+        <p class="step">Step 3: Check access to the website files</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>namei -l /var/www/html/index.html
+sudo -u www-data test -r /var/www/html/index.html && echo "Readable" || echo "Not readable"</code></pre>
+        </div>
+
+        <p>
+            The first command shows permissions for every directory in the
+            path. The second checks whether the Nginx user can read the file.
+        </p>
+
+        <p class="step">Step 4: Apply the correct permissions</p>
+
+        <p>
+            If the website files should be publicly readable and deployment
+            ownership is managed separately, use:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo find /var/www/html -type d -exec chmod 755 {} \;
+sudo find /var/www/html -type f -exec chmod 644 {} \;</code></pre>
+        </div>
+
+        <p>
+            Directories need permission to be entered. Website files need
+            permission to be read. Nginx does not normally need permission
+            to modify website files.
+        </p>
+
+        <p class="step">Step 5: Verify the fix</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo -u www-data test -r /var/www/html/index.html && echo "Access OK"
+sudo nginx -t
+sudo systemctl reload nginx</code></pre>
+        </div>
+
+        <p>
+            The access test should succeed and the Nginx configuration
+            test should report that the configuration is successful.
+        </p>
+
+        <div class="note">
+            <strong>Production lesson:</strong> Do not give the Nginx user
+            write access to the entire website just to fix a read error.
+            Keep website ownership and deployment access separate.
+        </div>
+    </div>
+
+    <h2>4. Production Scenario: Application Fails After Deployment</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            A company runs a Python application on a Linux server.
+            The application is managed by systemd and runs using a dedicated
+            account called <code>myapp</code>.
+        </p>
+
+        <p>
+            The deployment team copies a new release into
+            <code>/opt/myapp</code>. After deployment, the application
+            fails to start.
+        </p>
+
+        <p>The service log contains an error similar to:</p>
+
+        <div class="code-box">
+            <div class="code-label">Example error</div>
+            <pre><code>PermissionError: [Errno 13] Permission denied:
+'/opt/myapp/config/settings.conf'</code></pre>
+        </div>
+
+        <p class="step">Step 1: Check the application service</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo systemctl status myapp
+sudo journalctl -u myapp -n 50 --no-pager</code></pre>
+        </div>
+
+        <p class="step">Step 2: Check the service user</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo systemctl show myapp -p User -p Group</code></pre>
+        </div>
+
+        <p>
+            Suppose the service runs as <code>myapp</code>. That account
+            must be able to read the application configuration and access
+            the directories it needs.
+        </p>
+
+        <p class="step">Step 3: Check the file permissions</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>ls -ld /opt/myapp
+ls -ld /opt/myapp/config
+ls -l /opt/myapp/config/settings.conf
+namei -l /opt/myapp/config/settings.conf</code></pre>
+        </div>
+
+        <p>
+            The problem may be the file itself or one of the directories
+            leading to it. The application needs permission to pass through
+            each directory in the path.
+        </p>
+
+        <p class="step">Step 4: Correct the ownership and permissions</p>
+
+        <p>
+            If <code>myapp</code> is supposed to own the application files,
+            correct the ownership of the application directory:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo chown -R myapp:myapp /opt/myapp
+sudo find /opt/myapp -type d -exec chmod 750 {} \;
+sudo find /opt/myapp -type f -exec chmod 640 {} \;</code></pre>
+        </div>
+
+        <p>
+            If the application contains scripts that must be executed
+            directly, restore execute permission only on those scripts.
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Example</div>
+            <pre><code>sudo chmod 750 /opt/myapp/start.sh</code></pre>
+        </div>
+
+        <p class="step">Step 5: Test access as the application user</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo -u myapp test -r /opt/myapp/config/settings.conf && echo "Config readable"
+sudo -u myapp test -x /opt/myapp && echo "Directory accessible"</code></pre>
+        </div>
+
+        <p class="step">Step 6: Start the application</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo systemctl restart myapp
+sudo systemctl status myapp
+sudo journalctl -u myapp -n 30 --no-pager</code></pre>
+        </div>
+
+        <div class="important">
+            Before running a recursive ownership or permission command,
+            confirm that the entire directory belongs to the application.
+            Do not apply the same permissions to private keys, secrets,
+            executable files, or uploaded data without checking their needs.
+        </div>
+    </div>
+
+    <h2>5. Production Scenario: Application Cannot Write to Log Files</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            A production application is running successfully, but its logs
+            are no longer being written.
+        </p>
+
+        <p>
+            The application team reports that the log file has stopped
+            receiving new entries. This makes it difficult to investigate
+            application errors.
+        </p>
+
+        <p><strong>Log location:</strong></p>
+
+        <div class="code-box">
+            <div class="code-label">Directory</div>
+            <pre><code>/var/log/myapp/
+└── application.log</code></pre>
+        </div>
+
+        <p class="step">Step 1: Check the log directory</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>ls -ld /var/log/myapp
+ls -l /var/log/myapp
+df -h /var/log</code></pre>
+        </div>
+
+        <p>
+            Check the directory owner, file owner, permissions, and available
+            disk space. A full disk can also stop new log entries.
+        </p>
+
+        <p class="step">Step 2: Check which user runs the application</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo systemctl show myapp -p User -p Group</code></pre>
+        </div>
+
+        <p class="step">Step 3: Create the log directory with correct ownership</p>
+
+        <p>
+            If the application runs as <code>myapp</code>, it should be able
+            to write to its own log directory.
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo install -d -o myapp -g myapp -m 750 /var/log/myapp</code></pre>
+        </div>
+
+        <p class="step">Step 4: Correct the existing log file</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo touch /var/log/myapp/application.log
+sudo chown myapp:myapp /var/log/myapp/application.log
+sudo chmod 640 /var/log/myapp/application.log</code></pre>
+        </div>
+
+        <p class="step">Step 5: Test whether the application user can write</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo -u myapp sh -c 'echo "Permission test" >> /var/log/myapp/application.log'</code></pre>
+        </div>
+
+        <p>
+            If the command succeeds, the application user can write to the
+            log file.
+        </p>
+
+        <p class="step">Step 6: Check log rotation</p>
+
+        <p>
+            Production servers regularly move old logs and create new ones.
+            This is called log rotation. If the new log file is created
+            with the wrong owner or permissions, the application may
+            stop writing to it.
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Example logrotate configuration</div>
+            <pre><code>/var/log/myapp/*.log {
+    daily
+    rotate 14
+    missingok
+    notifempty
+    compress
+    delaycompress
+    create 0640 myapp myapp
+}</code></pre>
+        </div>
+
+        <p>
+            This example keeps 14 rotated daily logs and creates new log
+            files with owner <code>myapp</code>, group <code>myapp</code>,
+            and permission <code>640</code>.
+        </p>
+
+        <div class="note">
+            <strong>Production lesson:</strong> Fix both the directory and
+            the log file. Also check log rotation, because a correct
+            permission today does not guarantee that the next log file
+            will have the same permission.
+        </div>
+    </div>
+
+    <h2>6. Production Scenario: Multiple Team Members Need Access to a Directory</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            A company has developers, testers, and system administrators.
+            All three teams need access to a shared deployment directory.
+        </p>
+
+        <p>
+            One developer creates a file, but another team member cannot
+            edit it. The problem happens because the files are not being
+            created with a shared group.
+        </p>
+
+        <p><strong>Shared directory:</strong></p>
+
+        <div class="code-box">
+            <div class="code-label">Directory</div>
+            <pre><code>/data/project/</code></pre>
+        </div>
+
+        <p class="step">Step 1: Create a shared group</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo groupadd projectteam</code></pre>
+        </div>
+
+        <p>
+            If the group already exists, do not create it again.
+        </p>
+
+        <p class="step">Step 2: Add users to the group</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo usermod -aG projectteam developer1
+sudo usermod -aG projectteam tester1
+sudo usermod -aG projectteam admin1</code></pre>
+        </div>
+
+        <p>
+            Users may need to start a new login session before the new
+            group membership appears.
+        </p>
+
+        <p class="step">Step 3: Assign the shared group to the directory</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo mkdir -p /data/project
+sudo chown root:projectteam /data/project
+sudo chmod 2770 /data/project</code></pre>
+        </div>
+
+        <p>
+            The number 2 at the beginning sets the setgid permission.
+            It helps new files and directories inherit the directory's
+            group instead of using the creator's usual group.
+        </p>
+
+        <p class="step">Step 4: Check the result</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>ls -ld /data/project</code></pre>
+        </div>
+
+        <p>Expected permission format:</p>
+
+        <div class="code-box">
+            <div class="code-label">Example output</div>
+            <pre><code>drwxrws--- root projectteam /data/project</code></pre>
+        </div>
+
+        <p class="step">Step 5: Test with a team member</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo -u developer1 touch /data/project/test.txt
+ls -l /data/project/test.txt</code></pre>
+        </div>
+
+        <div class="important">
+            The setgid permission makes new entries inherit the group.
+            It does not automatically guarantee that every new file is
+            group-writable. The user's umask or default access rules
+            must also allow the required write access.
+        </div>
+    </div>
+
+    <h2>7. Production Scenario: SSH Login Fails Because of Wrong Permissions</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            An administrator tries to connect to a production server using
+            an SSH private key. SSH rejects the key even though the key
+            itself is correct.
+        </p>
+
+        <p>
+            This can happen when the private key or the SSH directory
+            has permissions that are too open.
+        </p>
+
+        <p class="step">Step 1: Check the SSH directory</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>ls -ld ~/.ssh
+ls -l ~/.ssh</code></pre>
+        </div>
+
+        <p class="step">Step 2: Set the correct permissions</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>chmod 700 ~/.ssh
+chmod 600 ~/.ssh/id_rsa
+chmod 600 ~/.ssh/authorized_keys</code></pre>
+        </div>
+
+        <p>
+            If your private key has a different filename, use that
+            filename instead of <code>id_rsa</code>.
+        </p>
+
+        <p class="step">Step 3: Check ownership</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>ls -ld ~/.ssh
+ls -l ~/.ssh</code></pre>
+        </div>
+
+        <p>
+            The SSH directory and its files should belong to the account
+            that uses them.
+        </p>
+
+        <p class="step">Step 4: Test the connection</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>ssh -i ~/.ssh/id_rsa user@server-ip</code></pre>
+        </div>
+
+        <div class="note">
+            <strong>Production lesson:</strong> Never make private SSH keys
+            readable by everyone. A private key should only be accessible
+            to the account that needs it.
+        </div>
+    </div>
+
+    <h2>8. Production Scenario: Application Configuration Contains Database Passwords</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            A production application reads its database username and
+            password from a configuration file.
+        </p>
+
+        <p>
+            The file is located at <code>/etc/myapp/db.conf</code>.
+            The administrator wants the application to read it, but
+            other users on the server should not be able to read it.
+        </p>
+
+        <p class="step">Step 1: Check the application user</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo systemctl show myapp -p User -p Group</code></pre>
+        </div>
+
+        <p>
+            Assume the application runs as <code>myapp</code>.
+            The configuration file can be owned by root and assigned
+            to the application's group.
+        </p>
+
+        <p class="step">Step 2: Create the configuration directory</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo install -d -o root -g myapp -m 750 /etc/myapp</code></pre>
+        </div>
+
+        <p class="step">Step 3: Set the file ownership and permission</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo chown root:myapp /etc/myapp/db.conf
+sudo chmod 640 /etc/myapp/db.conf</code></pre>
+        </div>
+
+        <p>
+            With these permissions, root can read and modify the file.
+            Members of the <code>myapp</code> group can read it.
+            Other users cannot read it.
+        </p>
+
+        <p class="step">Step 4: Verify access</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo -u myapp test -r /etc/myapp/db.conf && echo "Application can read configuration"
+sudo -u nobody test -r /etc/myapp/db.conf && echo "Unexpected access" || echo "Other user cannot read configuration"</code></pre>
+        </div>
+
+        <div class="danger">
+            Never print database passwords or other secrets into terminal
+            output, application logs, or screenshots. Also remember that
+            file permissions protect the file itself; they do not protect
+            a password after an application has exposed it elsewhere.
+        </div>
+    </div>
+
+    <h2>9. Production Scenario: Docker Application Cannot Access a Mounted Directory</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            An application runs in a container and stores uploaded files
+            in a directory mounted from the Linux server.
+        </p>
+
+        <p>
+            The application starts successfully, but uploading a file
+            produces a permission error.
+        </p>
+
+        <p><strong>Example directory:</strong></p>
+
+        <div class="code-box">
+            <div class="code-label">Host directory</div>
+            <pre><code>/data/myapp/uploads/</code></pre>
+        </div>
+
+        <p>
+            The application may run as user ID 10001 inside the container,
+            while the directory belongs to a different user on the server.
+            Linux checks the numeric user and group IDs when deciding
+            whether access is allowed.
+        </p>
+
+        <p class="step">Step 1: Check the directory ownership</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>ls -ldn /data/myapp/uploads
+stat -c '%u:%g %a %n' /data/myapp/uploads</code></pre>
+        </div>
+
+        <p class="step">Step 2: Check the user ID used by the application</p>
+
+        <p>
+            Check the application's configured user ID. For a running
+            container, the following command displays its process users:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>ps -eo uid,gid,comm</code></pre>
+        </div>
+
+        <p>
+            If you have access to the container's shell, also check:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Command inside the container</div>
+            <pre><code>id</code></pre>
+        </div>
+
+        <p class="step">Step 3: Match ownership with the application's user</p>
+
+        <p>
+            If the application is intended to run as UID 10001 and GID
+            10001, and this directory is dedicated to that application,
+            an appropriate fix is:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo chown 10001:10001 /data/myapp/uploads
+sudo chmod 750 /data/myapp/uploads</code></pre>
+        </div>
+
+        <p class="step">Step 4: Verify access</p>
+
+        <p>
+            Test access using the same user ID and group ID as the
+            application. The application should be able to create and
+            modify files in the mounted directory.
+        </p>
+
+        <div class="note">
+            <strong>Production lesson:</strong> Do not use
+            <code>chmod 777</code> to solve container permission problems.
+            First check the user ID and group ID used by the application.
+        </div>
+    </div>
+
+    <h2>10. Production Scenario: Kubernetes Pod Cannot Write to a Persistent Volume</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            A company runs an application in Kubernetes. The application
+            stores reports on a Persistent Volume.
+        </p>
+
+        <p>
+            The pod starts, but the application fails when it tries to
+            create a report. The application log shows:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Example error</div>
+            <pre><code>PermissionError: [Errno 13] Permission denied: '/data/reports/report.txt'</code></pre>
+        </div>
+
+        <p>
+            The application process may be running as a different user
+            from the owner of the mounted directory.
+        </p>
+
+        <p class="step">Step 1: Check the pod</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>kubectl get pods -n production
+kubectl describe pod myapp-pod -n production
+kubectl logs myapp-pod -n production</code></pre>
+        </div>
+
+        <p class="step">Step 2: Check the user inside the pod</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>kubectl exec -it myapp-pod -n production -- id</code></pre>
+        </div>
+
+        <p class="step">Step 3: Check the mounted directory</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>kubectl exec -it myapp-pod -n production -- ls -ldn /data
+kubectl exec -it myapp-pod -n production -- ls -ldn /data/reports</code></pre>
+        </div>
+
+        <p>
+            Compare the directory's numeric owner and group with the
+            user and group used by the application.
+        </p>
+
+        <p class="step">Step 4: Set the pod's security context</p>
+
+        <p>
+            If the storage supports group-based access and the application
+            is designed to run with UID 10001 and GID 10001, the following
+            example can be used as a starting point:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Kubernetes deployment example</div>
+            <pre><code>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  namespace: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: myapp
+          image: myapp:latest
+          volumeMounts:
+            - name: reports
+              mountPath: /data/reports
+      volumes:
+        - name: reports
+          persistentVolumeClaim:
+            claimName: reports-pvc</code></pre>
+        </div>
+
+        <p>
+            Here, <code>runAsUser</code> sets the user ID for the
+            application process. <code>runAsGroup</code> sets its
+            primary group. <code>fsGroup</code> asks Kubernetes to make
+            supported mounted storage accessible to the specified group.
+        </p>
+
+        <p class="step">Step 5: Apply the updated deployment</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>kubectl apply -f deployment.yaml</code></pre>
+        </div>
+
+        <p class="step">Step 6: Verify the pod and directory access</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>kubectl rollout status deployment/myapp -n production
+kubectl get pods -n production
+kubectl exec -it deployment/myapp -n production -- id
+kubectl exec -it deployment/myapp -n production -- sh -c 'touch /data/reports/permission-test.txt'</code></pre>
+        </div>
+
+        <div class="important">
+            <strong>Important:</strong> <code>fsGroup</code> does not fix
+            every storage permission problem. Some storage drivers and
+            volume types handle ownership differently. Check the storage
+            provider's behavior before changing a production workload.
+            Do not assume that setting <code>fsGroup</code> will change
+            ownership on every existing volume.
+        </div>
+    </div>
+
+    <h2>11. Production Scenario: Backup Job Fails Because of File Permissions</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            A production server runs a scheduled backup job every night.
+            The backup job suddenly starts failing because it cannot
+            read files from the application directory.
+        </p>
+
+        <p class="step">Step 1: Check the backup job logs</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo systemctl list-timers
+sudo journalctl -u backup.service -n 50 --no-pager</code></pre>
+        </div>
+
+        <p>
+            If the backup is managed by cron instead of systemd, check
+            the relevant cron logs for the failed run.
+        </p>
+
+        <p class="step">Step 2: Check which user runs the backup</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo systemctl cat backup.service</code></pre>
+        </div>
+
+        <p>
+            Check the service's <code>User</code> and <code>Group</code>
+            settings, or inspect the scheduled job to find the account
+            that runs it.
+        </p>
+
+        <p class="step">Step 3: Check the backup directory</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>ls -ld /backup
+ls -l /backup
+df -h /backup</code></pre>
+        </div>
+
+        <p class="step">Step 4: Set controlled backup directory access</p>
+
+        <p>
+            For example, if a dedicated group called <code>backup</code>
+            is used for backup operations:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo groupadd backup
+sudo usermod -aG backup backupuser
+sudo chown root:backup /backup
+sudo chmod 750 /backup</code></pre>
+        </div>
+
+        <p>
+            Add the backup service account to the group only if it is
+            the intended account. A new login session or service restart
+            may be needed for the new group membership to take effect.
+        </p>
+
+        <p class="step">Step 5: Verify the backup user's access</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo -u backupuser test -w /backup && echo "Backup directory is writable"</code></pre>
+        </div>
+
+        <p>
+            Also verify that the backup account can read the source
+            directories it is expected to back up.
+        </p>
+
+        <div class="note">
+            <strong>Production lesson:</strong> Backup access should be
+            limited to the required directories. Do not give a backup
+            account unrestricted access to the entire server.
+        </div>
+    </div>
+
+    <h2>12. Production Incident: Someone Changed Permissions to 777</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            An application team cannot upload files. To fix the issue
+            quickly, someone runs:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Unsafe command</div>
+            <pre><code>chmod -R 777 /var/www/html</code></pre>
+        </div>
+
+        <p>
+            The website starts working, but every local user can now
+            modify files in the website directory.
+        </p>
+
+        <p>
+            This creates a security risk. A user or compromised process
+            could replace website files or add unwanted code.
+        </p>
+
+        <p class="step">Step 1: Find files and directories with open permissions</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>find /var/www/html -type d -perm -0002 -print
+find /var/www/html -type f -perm -0002 -print</code></pre>
+        </div>
+
+        <p>
+            These commands list directories and files that allow everyone
+            to write to them.
+        </p>
+
+        <p class="step">Step 2: Review the affected files</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>find /var/www/html -perm -0002 -printf '%M %u:%g %p\n'</code></pre>
+        </div>
+
+        <p>
+            Review the output before making any changes. Some directories
+            may have a specific reason for allowing shared writes.
+        </p>
+
+        <p class="step">Step 3: Correct the website permissions</p>
+
+        <p>
+            If the website follows the normal arrangement where Nginx
+            only needs to read files, the following can be used after
+            confirming that the directory structure is suitable:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>find /var/www/html -type d -exec chmod 755 {} \;
+find /var/www/html -type f -exec chmod 644 {} \;</code></pre>
+        </div>
+
+        <p>
+            If some files are executable scripts, restore their execute
+            permissions individually.
+        </p>
+
+        <p class="step">Step 4: Verify the permissions</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>find /var/www/html -type d -perm -0002 -print
+find /var/www/html -type f -perm -0002 -print
+ls -l /var/www/html</code></pre>
+        </div>
+
+        <div class="danger">
+            Never run recursive permission changes across the entire
+            filesystem. A broad command can break SSH, databases,
+            application services, and other production software.
+        </div>
+    </div>
+
+    <h2>13. Production Scenario: systemd Service Fails with Permission Denied</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            An application is installed at <code>/opt/payment-service</code>.
+            The application team has created a systemd service, but the
+            service does not start.
+        </p>
+
+        <p>Its log shows:</p>
+
+        <div class="code-box">
+            <div class="code-label">Example error</div>
+            <pre><code>Failed to execute /opt/payment-service/start.sh: Permission denied</code></pre>
+        </div>
+
+        <p class="step">Step 1: Check the service status</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo systemctl status payment-service
+sudo journalctl -u payment-service -n 50 --no-pager</code></pre>
+        </div>
+
+        <p class="step">Step 2: Check the script permissions</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>ls -l /opt/payment-service/start.sh
+namei -l /opt/payment-service/start.sh</code></pre>
+        </div>
+
+        <p>
+            The script must be executable by the service user. The
+            directories leading to the script must also allow that
+            user to pass through them.
+        </p>
+
+        <p class="step">Step 3: Check the script owner and service user</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo systemctl cat payment-service
+sudo systemctl show payment-service -p User -p Group</code></pre>
+        </div>
+
+        <p class="step">Step 4: Correct the script permission</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo chmod 750 /opt/payment-service/start.sh</code></pre>
+        </div>
+
+        <p>
+            Use this permission only if the service user has the required
+            ownership or group access. Also confirm that the script has
+            a valid first line, such as:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Script first line</div>
+            <pre><code>#!/bin/bash</code></pre>
+        </div>
+
+        <p class="step">Step 5: Verify and restart the service</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>sudo -u payment test -x /opt/payment-service/start.sh
+sudo systemctl restart payment-service
+sudo systemctl status payment-service</code></pre>
+        </div>
+
+        <div class="note">
+            If the script is executable but still cannot run, check the
+            interpreter path, the filesystem mount options, and the
+            service's security restrictions. Not every execution failure
+            is caused by the file's permission bits.
+        </div>
+    </div>
+
+    <h2>14. Production Scenario: New Files Are Created with the Wrong Permissions</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            A deployment script creates configuration files with
+            permissions that are too open. The administrator wants
+            newly created files to be private by default.
+        </p>
+
+        <p>
+            Linux uses a setting called <code>umask</code> to remove
+            permissions when new files and directories are created.
+        </p>
+
+        <p class="step">Step 1: Check the current umask</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>umask</code></pre>
+        </div>
+
+        <p class="step">Step 2: Set a more restrictive umask</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>umask 027</code></pre>
+        </div>
+
+        <p>
+            With this setting, a normal file created with default
+            permissions of 666 will normally become 640. A directory
+            created with default permissions of 777 will normally
+            become 750.
+        </p>
+
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Default permissions</th>
+                <th>With umask 027</th>
+            </tr>
+            <tr>
+                <td>File</td>
+                <td>666</td>
+                <td>640</td>
+            </tr>
+            <tr>
+                <td>Directory</td>
+                <td>777</td>
+                <td>750</td>
+            </tr>
+        </table>
+
+        <p class="step">Step 3: Test the setting</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>touch test.conf
+mkdir test-directory
+ls -l test.conf
+ls -ld test-directory</code></pre>
+        </div>
+
+        <p>
+            This setting applies to the current shell and processes
+            started from it. To make it permanent, configure the
+            appropriate user or service environment rather than
+            assuming that a temporary shell setting will affect
+            every application.
+        </p>
+
+        <div class="note">
+            <strong>Production lesson:</strong> A restrictive umask helps
+            prevent newly created files from being readable or writable
+            by users who do not need access.
+        </div>
+    </div>
+
+    <h2>15. Production Scenario: Finding and Fixing Incorrect Ownership</h2>
+
+    <div class="scenario">
+        <h3>Situation</h3>
+
+        <p>
+            An administrator notices that files inside an application
+            directory have different owners. Some belong to root, while
+            others belong to the application account.
+        </p>
+
+        <p>
+            This happened because files were created by different
+            deployment processes and users.
+        </p>
+
+        <p class="step">Step 1: Inspect ownership</p>
+
+        <div class="code-box">
+            <div class="code-label">Commands</div>
+            <pre><code>ls -la /opt/myapp
+find /opt/myapp -printf '%u:%g %m %p\n'</code></pre>
+        </div>
+
+        <p class="step">Step 2: Identify files that do not belong to the application</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>find /opt/myapp ! -user myapp -print</code></pre>
+        </div>
+
+        <p>
+            This lists files and directories that are not owned by
+            <code>myapp</code>. Review the list before changing anything.
+        </p>
+
+        <p class="step">Step 3: Correct only the required ownership</p>
+
+        <p>
+            If the entire directory is dedicated to the application
+            and all its contents should belong to the application:
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>sudo chown -R myapp:myapp /opt/myapp</code></pre>
+        </div>
+
+        <p>
+            If only selected files need correction, change only those
+            files instead of changing the entire directory.
+        </p>
+
+        <div class="code-box">
+            <div class="code-label">Example</div>
+            <pre><code>sudo chown myapp:myapp /opt/myapp/config/settings.conf</code></pre>
+        </div>
+
+        <p class="step">Step 4: Verify ownership</p>
+
+        <div class="code-box">
+            <div class="code-label">Command</div>
+            <pre><code>find /opt/myapp -printf '%u:%g %m %p\n'</code></pre>
+        </div>
+
+        <div class="important">
+            Never run <code>chown -R</code> against system directories
+            such as <code>/</code>, <code>/etc</code>, or
+            <code>/usr</code>. Changing system ownership can stop
+            important services from working.
+        </div>
+    </div>
+
+    <h2>16. Useful Linux Permission Commands in Production</h2>
+
+    <table>
+        <tr>
+            <th>Command</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td><code>ls -l</code></td>
+            <td>View file permissions and ownership</td>
+        </tr>
+        <tr>
+            <td><code>ls -ld directory</code></td>
+            <td>View directory permissions</td>
+        </tr>
+        <tr>
+            <td><code>chmod</code></td>
+            <td>Change file or directory permissions</td>
+        </tr>
+        <tr>
+            <td><code>chown</code></td>
+            <td>Change file or directory ownership</td>
+        </tr>
+        <tr>
+            <td><code>chgrp</code></td>
+            <td>Change the group assigned to a file</td>
+        </tr>
+        <tr>
+            <td><code>id</code></td>
+            <td>View the current user's ID and groups</td>
+        </tr>
+        <tr>
+            <td><code>groups</code></td>
+            <td>View group membership</td>
+        </tr>
+        <tr>
+            <td><code>stat</code></td>
+            <td>View detailed file information</td>
+        </tr>
+        <tr>
+            <td><code>namei -l</code></td>
+            <td>Check permissions along a complete path</td>
+        </tr>
+        <tr>
+            <td><code>umask</code></td>
+            <td>View or set default permission restrictions</td>
+        </tr>
+        <tr>
+            <td><code>getfacl</code></td>
+            <td>View additional access rules</td>
+        </tr>
+        <tr>
+            <td><code>setfacl</code></td>
+            <td>Set additional access rules</td>
+        </tr>
+    </table>
+
+    <h2>17. Checking Additional Access Rules with ACL</h2>
+
+    <p>
+        Sometimes a directory must be accessible to a particular user
+        without changing its main owner or group. Linux supports
+        additional access rules for this purpose.
+    </p>
+
+    <p>
+        For example, a developer needs read access to a directory,
+        but should not become the owner of the directory.
+    </p>
+
+    <div class="code-box">
+        <div class="code-label">Give a user read and execute access</div>
+        <pre><code>sudo setfacl -m u:developer1:rx /data/project</code></pre>
+    </div>
+
+    <p>Check the access rules:</p>
+
+    <div class="code-box">
+        <div class="code-label">Command</div>
+        <pre><code>getfacl /data/project</code></pre>
+    </div>
+
+    <p>Remove the additional rule:</p>
+
+    <div class="code-box">
+        <div class="code-label">Command</div>
+        <pre><code>sudo setfacl -x u:developer1 /data/project</code></pre>
+    </div>
+
+    <div class="note">
+        ACL rules are useful when the normal owner and group permissions
+        are not enough. Always check the ACL output when permissions
+        look correct but access still behaves unexpectedly.
+    </div>
+
+    <h2>18. A Safe Method to Troubleshoot Permission Problems</h2>
+
+    <p>
+        When an application reports permission denied, do not immediately
+        run <code>chmod 777</code> or change ownership recursively.
+        Follow this order.
+    </p>
+
+    <div class="checklist">
+        <ol>
+            <li>Identify the exact file or directory mentioned in the error.</li>
+            <li>Find which user and group run the application.</li>
+            <li>Check the owner and permissions using <code>ls -l</code>.</li>
+            <li>Check every directory in the path using <code>namei -l</code>.</li>
+            <li>Check whether the application needs read, write, or execute access.</li>
+            <li>Check additional access rules using <code>getfacl</code>.</li>
+            <li>Check whether the filesystem is mounted read-only.</li>
+            <li>Change only the permissions or ownership that need correction.</li>
+            <li>Test access using the same user that runs the application.</li>
+            <li>Restart the service only if required and verify its logs.</li>
+        </ol>
+    </div>
+
+    <h2>19. Practice Tasks</h2>
+
+    <p>
+        Complete these tasks on a test Linux server. Do not experiment
+        with permission changes on a production system.
+    </p>
+
+    <div class="checklist">
+        <h3>Task 1: Website permissions</h3>
+        <ul>
+            <li>Create a directory named <code>/var/www/demo</code>.</li>
+            <li>Create an <code>index.html</code> file inside it.</li>
+            <li>Set directory permissions to 755.</li>
+            <li>Set file permissions to 644.</li>
+            <li>Verify the permissions using <code>ls -l</code>.</li>
+        </ul>
+
+        <h3>Task 2: Application directory</h3>
+        <ul>
+            <li>Create a user named <code>demoapp</code>.</li>
+            <li>Create <code>/opt/demoapp</code>.</li>
+            <li>Assign ownership to <code>demoapp</code>.</li>
+            <li>Set the directory permission to 750.</li>
+            <li>Check access using <code>sudo -u demoapp</code>.</li>
+        </ul>
+
+        <h3>Task 3: Secure a configuration file</h3>
+        <ul>
+            <li>Create <code>/etc/demoapp</code>.</li>
+            <li>Create a file named <code>app.conf</code>.</li>
+            <li>Assign it to root and the demoapp group.</li>
+            <li>Set its permission to 640.</li>
+            <li>Verify that the demoapp user can read it.</li>
+        </ul>
+
+        <h3>Task 4: Shared directory</h3>
+        <ul>
+            <li>Create a group named <code>devteam</code>.</li>
+            <li>Create two test users.</li>
+            <li>Add both users to the group.</li>
+            <li>Create <code>/data/devteam</code>.</li>
+            <li>Set the directory permission to 2770.</li>
+            <li>Verify that new files inherit the shared group.</li>
+        </ul>
+
+        <h3>Task 5: Find incorrect permissions</h3>
+        <ul>
+            <li>Create a few test files with different permissions.</li>
+            <li>Find files that allow everyone to write.</li>
+            <li>Review the results.</li>
+            <li>Correct only the files that should not be world-writable.</li>
+        </ul>
+    </div>
+
+    <h2>20. Final Production Checklist</h2>
+
+    <div class="checklist">
+        <ul>
+            <li>Application services run using dedicated users where appropriate.</li>
+            <li>Website files are readable by the web server but not unnecessarily writable.</li>
+            <li>Application configuration files have restricted access.</li>
+            <li>Passwords and private keys are not readable by everyone.</li>
+            <li>Log directories are writable by the correct application account.</li>
+            <li>Log rotation creates files with the correct owner and permissions.</li>
+            <li>Shared directories use the correct group permissions.</li>
+            <li>SSH directories and keys have secure permissions.</li>
+            <li>Container and Kubernetes volume access is checked using actual user and group IDs.</li>
+            <li>Backup jobs have only the access they need.</li>
+            <li>No unnecessary files or directories have permission 777.</li>
+            <li>Recursive permission changes are reviewed before execution.</li>
+            <li>Permissions are tested using the actual service account.</li>
+        </ul>
+    </div>
+
+    <h2>21. What You Should Be Able to Do After This Lesson</h2>
+
+    <p>
+        After completing these exercises, you should be able to investigate
+        and fix common Linux permission problems found in production.
+    </p>
+
+    <ul>
+        <li>Identify why an application cannot read or write a file.</li>
+        <li>Fix website access problems without giving unnecessary write access.</li>
+        <li>Correct ownership for application files and directories.</li>
+        <li>Secure configuration files containing sensitive information.</li>
+        <li>Manage shared directories for multiple users.</li>
+        <li>Investigate SSH key permission problems.</li>
+        <li>Understand file access problems in containers and Kubernetes.</li>
+        <li>Find unsafe permissions and correct them carefully.</li>
+        <li>Verify fixes using the actual application or service account.</li>
+    </ul>
+
+    <div class="intro">
+        <h3>Final Reminder</h3>
+        <p>
+            In production, the goal is not to make every file accessible
+            to everyone. The goal is to give each user and application
+            exactly the access it needs.
+        </p>
+
+        <p>
+            When you see a permission error, identify the user, check the
+            file, inspect the complete directory path, and test the access.
+            Make the smallest required change and verify the result.
+        </p>
+    </div>
+
+</div>
+
+<script>
+    function toggleVideo() {
+        const video = document.getElementById("videoContent");
+
+        if (video.style.display === "block") {
+            video.style.display = "none";
+        } else {
+            video.style.display = "block";
+        }
+    }
+</script>
+
+</body>
+</html>

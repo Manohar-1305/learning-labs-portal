@@ -5,6 +5,8 @@ docker run -d --name learning-labs -p 5000:5000 --env-file .env --env-file files
 
 Get-ChildItem -Path . -Filter *.py -Recurse | Select-String -Pattern '^\s*(import\s+|from\s+)'
 
+k logs -f deployment/learning-labs -n learning-labs
+
 # 1. Create Docker network
 docker network create learning-network
 

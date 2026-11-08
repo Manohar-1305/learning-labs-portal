@@ -220,6 +220,45 @@ function createLocalTerminal(container) {
   inputQueues[container] = "";
   pollingInProgress[container] = false;
 
+  // Ctrl+C copies selected text. Without a selection, Ctrl+C remains
+  // available to send an interrupt to the Linux terminal.
+  // Ctrl+V pastes clipboard text into the Linux terminal.
+  terminal.attachCustomKeyEventHandler((event) => {
+    if (event.type !== "keydown") return true;
+
+    const isCtrl = event.ctrlKey || event.metaKey;
+
+    if (!isCtrl) return true;
+
+    const key = event.key.toLowerCase();
+
+    if (key === "c" && terminal.hasSelection()) {
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard
+          .writeText(terminal.getSelection())
+          .catch((error) => console.error("Copy failed:", error));
+      }
+
+      terminal.clearSelection();
+      return false;
+    }
+
+    if (key === "v") {
+      if (navigator.clipboard?.readText) {
+        navigator.clipboard
+          .readText()
+          .then((text) => {
+            if (text) terminal.paste(text);
+          })
+          .catch((error) => console.error("Paste failed:", error));
+      }
+
+      return false;
+    }
+
+    return true;
+  });
+
   terminal.onData((data) => {
     if (!terminalSessions[container]) return;
 

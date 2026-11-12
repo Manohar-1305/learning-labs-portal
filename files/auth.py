@@ -296,6 +296,8 @@ def _create_user_session(user):
     session["session_id"] = secrets.token_urlsafe(32)
     session["user_id"] = int(user["id"])
     session["user"] = user["username"]
+    session["username"] = user["username"]
+    session["email"] = user["email"]
     session["_csrf"] = secrets.token_hex(16)
     session["login_time"] = datetime.now(
         timezone.utc

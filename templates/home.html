@@ -1,794 +1,918 @@
-
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Learning Labs</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Labs</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
-    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
-    <style>
-      .user-menu {
-        position: relative;
-        display: inline-block;
-      }
+  <style>
+    .user-menu {
+      position: relative;
+      display: inline-block;
+    }
 
-      .user-menu summary {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        background: #0f766e;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 16px;
-        cursor: pointer;
-        list-style: none;
-        user-select: none;
-      }
+    .user-menu summary {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #0f766e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
 
-      .user-menu summary::-webkit-details-marker {
-        display: none;
-      }
+    .user-menu summary::-webkit-details-marker {
+      display: none;
+    }
 
-      .user-dropdown {
-        position: absolute;
-        top: 52px;
-        right: 0;
-        min-width: 190px;
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        padding: 8px;
-        z-index: 1000;
-      }
+    .user-dropdown {
+      position: absolute;
+      top: 52px;
+      right: 0;
+      min-width: 190px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      padding: 8px;
+      z-index: 1000;
+    }
 
-      .user-dropdown .dropdown-username {
-        display: block;
-        padding: 10px 12px;
-        font-weight: 700;
-        color: #1e293b;
-        overflow-wrap: anywhere;
-      }
+    .user-dropdown .dropdown-username {
+      display: block;
+      padding: 10px 12px;
+      font-weight: 700;
+      color: #1e293b;
+      overflow-wrap: anywhere;
+    }
 
-      .user-dropdown a {
-        display: block;
-        padding: 10px 12px;
-        border-radius: 6px;
-        color: #334155;
-        text-decoration: none;
-      }
+    .user-dropdown a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+    }
 
-      .user-dropdown a:hover {
-        background: #f1f5f9;
-      }
+    .user-dropdown a:hover {
+      background: #f1f5f9;
+    }
 
-      .subscription-plans-tab {
-        border: 0;
-        border-radius: 7px;
-        padding: 11px 16px;
-        background: #f59e0b;
-        color: #000;
-        font-size: 13px;
-        font-weight: 700;
-        cursor: pointer;
-      }
+    .subscription-plans-tab {
+      border: 0;
+      border-radius: 7px;
+      padding: 11px 16px;
+      background: #f59e0b;
+      color: #000;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
-      .subscription-plans-tab:hover {
-        background: #d97706;
-        color: #000;
-      }
+    .subscription-plans-tab:hover {
+      background: #d97706;
+      color: #000;
+    }
 
-      .subscription-expiry-banner {
-        display: none;
-        margin: 16px 0;
-        padding: 12px 18px;
-        border-radius: 8px;
-        font-size: 14px;
-        line-height: 1.5;
-      }
+    .subscription-expiry-banner {
+      display: none;
+      margin: 16px 0;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
 
-      .subscription-expiry-banner.active {
-        display: block;
-        background: #ecfdf5;
-        border: 1px solid #a7f3d0;
-        color: #065f46;
-      }
+    .subscription-expiry-banner.active {
+      display: block;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+    }
 
-      .subscription-expiry-banner.warning {
-        display: block;
-        background: #fffbeb;
-        border: 1px solid #fcd34d;
-        color: #92400e;
-      }
+    .subscription-expiry-banner.warning {
+      display: block;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+    }
 
-      .subscription-expiry-banner.expired {
-        display: block;
-        background: #fef2f2;
-        border: 1px solid #fecaca;
-        color: #991b1b;
-      }
+    .subscription-expiry-banner.expired {
+      display: block;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
 
-      .subscription-modal {
-        display: none;
-        position: fixed;
-        inset: 0;
-        z-index: 2000;
-        background: rgba(15, 23, 42, 0.55);
-        align-items: center;
-        justify-content: center;
-        padding: 18px;
-      }
+    .subscription-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(15, 23, 42, 0.55);
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
 
-      .subscription-modal.open {
-        display: flex;
-      }
+    .subscription-modal.open {
+      display: flex;
+    }
 
-      .subscription-modal-content {
-        position: relative;
-        width: 100%;
-        max-width: 460px;
-        max-height: 90vh;
-        overflow-y: auto;
-        background: #fff;
-        border-radius: 14px;
-        padding: 26px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-      }
+    .subscription-modal-content {
+      position: relative;
+      width: 100%;
+      max-width: 460px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 14px;
+      padding: 26px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
 
-      .subscription-modal-content h2 {
-        margin: 0 0 8px;
-        color: #172554;
-      }
+    .subscription-modal-content h2 {
+      margin: 0 0 8px;
+      color: #172554;
+    }
 
-      .subscription-modal-content > p {
-        margin: 0 0 20px;
-        color: #64748b;
-        font-size: 14px;
-      }
+    .subscription-modal-content > p {
+      margin: 0 0 20px;
+      color: #64748b;
+      font-size: 14px;
+    }
 
-      .modal-close {
-        position: absolute;
-        top: 12px;
-        right: 15px;
-        border: 0;
-        background: transparent;
-        color: #64748b;
-        font-size: 25px;
-        cursor: pointer;
-      }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      font-size: 25px;
+      cursor: pointer;
+    }
 
-      .mobile-number-field {
-        display: block;
-        width: 100%;
-        box-sizing: border-box;
-        margin-bottom: 15px;
-      }
+    .mobile-number-field {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
 
-      .mobile-number-field label {
-        display: block;
-        margin-bottom: 7px;
-        color: #334155;
-        font-size: 13px;
-        font-weight: 600;
-      }
+    .mobile-number-field label {
+      display: block;
+      margin-bottom: 7px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 600;
+    }
 
-      .mobile-number-field input {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 12px 13px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        outline: none;
-        font-size: 14px;
-      }
+    .mobile-number-field input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+    }
 
-      .mobile-number-field input:focus {
-        border-color: #0f766e;
-      }
+    .mobile-number-field input:focus {
+      border-color: #0f766e;
+    }
 
-      .trial-option {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+    .trial-option {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+      border: 1px solid #0f766e;
+      border-radius: 9px;
+      background: #ecfdf5;
+      color: #065f46;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .trial-option strong,
+    .trial-option span {
+      display: block;
+    }
+
+    .trial-option span {
+      margin-top: 4px;
+      font-size: 12px;
+    }
+
+    .trial-option:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .plan-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .plan-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 13px 15px;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      background: #fff;
+      color: #1e293b;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .plan-option:hover {
+      border-color: #0f766e;
+      background: #f8fafc;
+    }
+
+    .plan-option strong {
+      color: #0f766e;
+      font-size: 16px;
+    }
+
+    .plan-option:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .subscription-message {
+      min-height: 20px;
+      margin-top: 14px;
+      color: #b91c1c;
+      font-size: 13px;
+    }
+
+    /* Home banner popup */
+    .home-banner-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      background: rgba(15, 23, 42, 0.75);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .home-banner-modal.open {
+      display: flex;
+    }
+
+    .home-banner-content {
+      position: relative;
+      width: 100%;
+      max-width: 850px;
+      max-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .home-banner-content img {
+      display: block;
+      max-width: 100%;
+      max-height: 85vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+
+    .home-banner-close {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 50%;
+      background: #fff;
+      color: #1e293b;
+      font-size: 25px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    }
+
+    @media (max-width: 600px) {
+      .home-banner-modal {
         padding: 14px;
-        margin-bottom: 16px;
-        border: 1px solid #0f766e;
-        border-radius: 9px;
-        background: #ecfdf5;
-        color: #065f46;
-        text-align: left;
-        cursor: pointer;
       }
 
-      .trial-option strong,
-      .trial-option span {
-        display: block;
+      .home-banner-content img {
+        max-height: 80vh;
       }
 
-      .trial-option span {
-        margin-top: 4px;
-        font-size: 12px;
+      .home-banner-close {
+        top: -12px;
+        right: -8px;
       }
+    }
+  </style>
+</head>
 
-      .trial-option:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+<body>
+  <main class="labs-page">
+    <nav class="home-nav">
+      <a href="/" class="home-brand" aria-label="Learning Labs home">
+        <strong>Learning Labs</strong>
+      </a>
 
-      .plan-list {
-        display: grid;
-        gap: 10px;
-      }
+      <div class="nav-actions">
+        {% if session.get('is_admin') %}
+        <a class="nav-link" href="/admin">Admin</a>
+        {% endif %}
 
-      .plan-option {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        padding: 13px 15px;
-        border: 1px solid #e2e8f0;
-        border-radius: 9px;
-        background: #fff;
-        color: #1e293b;
-        text-align: left;
-        cursor: pointer;
-      }
-
-      .plan-option:hover {
-        border-color: #0f766e;
-        background: #f8fafc;
-      }
-
-      .plan-option strong {
-        color: #0f766e;
-        font-size: 16px;
-      }
-
-      .plan-option:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      .subscription-message {
-        min-height: 20px;
-        margin-top: 14px;
-        color: #b91c1c;
-        font-size: 13px;
-      }
-    </style>
-  </head>
-
-  <body>
-    <main class="labs-page">
-      <nav class="home-nav">
-        <a href="/" class="home-brand" aria-label="Learning Labs home">
-          <strong>Learning Labs</strong>
+        <a class="nav-link" href="/new-account" target="_blank" rel="noopener">
+          Add account
         </a>
 
-        <div class="nav-actions">
-          {% if session.get('is_admin') %}
-          <a class="nav-link" href="/admin">Admin</a>
-          {% endif %}
+        {% if session.get('user') or session.get('username') %}
+        {% set username = session.get('username') or session.get('user') %}
 
-          <a class="nav-link" href="/new-account" target="_blank" rel="noopener">
-            Add account
-          </a>
+        <button
+          class="subscription-plans-tab"
+          type="button"
+          onclick="openSubscriptionPlans()"
+        >
+          Subscription Plans
+        </button>
 
-          {% if session.get('user') or session.get('username') %}
-          {% set username = session.get('username') or session.get('user') %}
+        <details class="user-menu">
+          <summary aria-label="Open user menu">
+            {{ username[0]|upper }}
+          </summary>
 
-          <button
-            class="subscription-plans-tab"
-            type="button"
-            onclick="openSubscriptionPlans()"
-          >
-            Subscription Plans
-          </button>
-
-          <details class="user-menu">
-            <summary aria-label="Open user menu">
-              {{ username[0]|upper }}
-            </summary>
-
-            <div class="user-dropdown">
-              <span class="dropdown-username">{{ username }}</span>
-              <a href="/contribute">Contribute</a>
-              <a href="/suggest-lab">Suggest a Lab</a>
-              <a href="/logout">Logout</a>
-            </div>
-          </details>
-          {% else %}
-          <a class="contribute-btn" href="/contribute">Contribute</a>
-          <a class="login-btn" href="/login">Login</a>
-          {% endif %}
-        </div>
-      </nav>
-
-      {% if session.get('user') or session.get('username') %}
-      <div
-        id="subscriptionExpiryBanner"
-        class="subscription-expiry-banner"
-        role="status"
-        aria-live="polite"
-      ></div>
-      {% endif %}
-
-      <section class="hero-section">
-        <div class="hero-content">
-          <span class="hero-label">PRACTICAL LEARNING ENVIRONMENTS</span>
-
-          <h1>
-            Learn by doing.<br />
-            <span>Build real skills.</span>
-          </h1>
-
-          <p>
-            Explore Ansible, Jenkins and Bash through hands-on labs.
-            Work with real commands, practise automation and build
-            confidence using the tools you'll encounter in real
-            technical environments.
-          </p>
-
-          <div class="hero-tags">
-            <span>Linux</span>
-            <span>Automation</span>
-            <span>DevOps</span>
-            <span>Hands-on practice</span>
+          <div class="user-dropdown">
+            <span class="dropdown-username">{{ username }}</span>
+            <a href="/contribute">Contribute</a>
+            <a href="/suggest-lab">Suggest a Lab</a>
+            <a href="/logout" onclick="sessionStorage.removeItem('learningLabsBannerShown')">Logout</a>
           </div>
-        </div>
-
-        <div class="hero-visual">
-          <div class="terminal-card">
-            <div class="terminal-top">
-              <div class="terminal-dots">
-                <i></i>
-                <i></i>
-                <i></i>
-              </div>
-              <span>learning-labs — terminal</span>
-            </div>
-
-            <div class="terminal-body">
-              <p><span class="terminal-prompt">$</span> ansible --version</p>
-              <p class="terminal-result">ansible [core 2.16.3]</p>
-
-              <br />
-
-              <p><span class="terminal-prompt">$</span> systemctl status jenkins</p>
-              <p class="terminal-success">Active: active (running)</p>
-
-              <br />
-
-              <p><span class="terminal-prompt">$</span> bash deploy.sh</p>
-              <p class="terminal-success">Deployment completed successfully.</p>
-
-              <br />
-
-              <p><span class="terminal-prompt">$</span> <span class="terminal-cursor">_</span></p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="labs-section">
-        <div class="section-heading">
-          <span class="section-label">CHOOSE YOUR ENVIRONMENT</span>
-          <h2>Explore the labs</h2>
-          <p>Select a lab and start practising.</p>
-        </div>
-
-        <section class="labs-grid">
-          {% for slug, lab in labs.items() %}
-          <a
-            class="lab-card {% if slug == 'ansible' %}lab-ansible{% elif slug == 'jenkins' %}lab-jenkins{% else %}lab-bash{% endif %}"
-            href="/{{ slug }}"
-          >
-            <div class="lab-card-top">
-              <div class="lab-icon" aria-hidden="true">
-                {% if slug == "ansible" %}
-                  A
-                {% elif slug == "jenkins" %}
-                  J
-                {% else %}
-                  B
-                {% endif %}
-              </div>
-
-              <div class="lab-image">
-                {% if slug == "ansible" %}
-                  <img src="{{ url_for('static', filename='images/ansible.png') }}" alt="Ansible" />
-                {% elif slug == "jenkins" %}
-                  <img src="{{ url_for('static', filename='images/jenkins.png') }}" alt="Jenkins" />
-                {% elif slug == "bash" %}
-                  <img src="{{ url_for('static', filename='images/bash.png') }}" alt="Bash" />
-                {% else %}
-                  <img src="{{ url_for('static', filename='images/linux.png') }}" alt="Linux" />
-                {% endif %}
-              </div>
-
-              <span class="lab-number">
-                {% if loop.index < 10 %}0{% endif %}{{ loop.index }}
-              </span>
-            </div>
-
-            <div class="lab-card-content">
-              <h3>
-                {% if slug == "ansible" %}
-                  Ansible Lab
-                {% elif slug == "jenkins" %}
-                  Jenkins Lab
-                {% elif slug == "bash" %}
-                  Bash Lab
-                {% else %}
-                  {{ lab.title }}
-                {% endif %}
-              </h3>
-
-              <p>{{ lab.description }}</p>
-            </div>
-
-            <div class="lab-card-footer">
-              <span>Start practising</span>
-              <span class="lab-arrow" aria-hidden="true">→</span>
-            </div>
-          </a>
-          {% endfor %}
-        </section>
-      </section>
-
-      <footer class="home-footer">
-        <span>Learning Labs</span>
-        <span>Learn · Practice · Improve</span>
-      </footer>
-    </main>
+        </details>
+        {% else %}
+        <a class="contribute-btn" href="/contribute">Contribute</a>
+        <a class="login-btn" href="/login">Login</a>
+        {% endif %}
+      </div>
+    </nav>
 
     {% if session.get('user') or session.get('username') %}
     <div
-      class="subscription-modal"
-      id="subscriptionModal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="subscriptionModalTitle"
-    >
-      <div class="subscription-modal-content">
-        <button
-          class="modal-close"
-          type="button"
-          onclick="closeSubscriptionPlans()"
-          aria-label="Close"
-        >
-          &times;
-        </button>
+      id="subscriptionExpiryBanner"
+      class="subscription-expiry-banner"
+      role="status"
+      aria-live="polite"
+    ></div>
+    {% endif %}
 
-        <h2 id="subscriptionModalTitle">Subscription Plans</h2>
-        <p>Choose a plan for access to all Learning Labs.</p>
+    <section class="hero-section">
+      <div class="hero-content">
+        <span class="hero-label">PRACTICAL LEARNING ENVIRONMENTS</span>
 
-        <div class="mobile-number-field">
-          <label for="subscriptionPhone">Indian mobile number</label>
-          <input
-            type="tel"
-            id="subscriptionPhone"
-            inputmode="numeric"
-            maxlength="10"
-            placeholder="Enter 10-digit mobile number"
-            autocomplete="tel-national"
-          />
+        <h1>
+          Learn by doing.<br />
+          <span>Build real skills.</span>
+        </h1>
+
+        <p>
+          Explore Ansible, Jenkins and Bash through hands-on labs.
+          Work with real commands, practise automation and build
+          confidence using the tools you'll encounter in real
+          technical environments.
+        </p>
+
+        <div class="hero-tags">
+          <span>Linux</span>
+          <span>Automation</span>
+          <span>DevOps</span>
+          <span>Hands-on practice</span>
         </div>
-
-        <button
-          type="button"
-          class="trial-option"
-          id="freeTrialButton"
-          onclick="startFreeTrial()"
-        >
-          <span>
-            <strong>1 Day Free Trial</strong>
-            <span>Get 24-hour access to all labs</span>
-          </span>
-          <strong>FREE</strong>
-        </button>
-
-        <div class="plan-list">
-          <button class="plan-option" type="button" onclick="purchasePlan(3)">
-            <span>3 Days</span>
-            <strong>₹25</strong>
-          </button>
-
-          <button class="plan-option" type="button" onclick="purchasePlan(7)">
-            <span>7 Days</span>
-            <strong>₹65</strong>
-          </button>
-
-          <button class="plan-option" type="button" onclick="purchasePlan(15)">
-            <span>15 Days</span>
-            <strong>₹125</strong>
-          </button>
-
-          <button class="plan-option" type="button" onclick="purchasePlan(30)">
-            <span>30 Days</span>
-            <strong>₹250</strong>
-          </button>
-        </div>
-
-        <div id="subscriptionMessage" class="subscription-message"></div>
       </div>
+
+      <div class="hero-visual">
+        <div class="terminal-card">
+          <div class="terminal-top">
+            <div class="terminal-dots">
+              <i></i>
+              <i></i>
+              <i></i>
+            </div>
+            <span>learning-labs — terminal</span>
+          </div>
+
+          <div class="terminal-body">
+            <p><span class="terminal-prompt">$</span> ansible --version</p>
+            <p class="terminal-result">ansible [core 2.16.3]</p>
+
+            <br />
+
+            <p><span class="terminal-prompt">$</span> systemctl status jenkins</p>
+            <p class="terminal-success">Active: active (running)</p>
+
+            <br />
+
+            <p><span class="terminal-prompt">$</span> bash deploy.sh</p>
+            <p class="terminal-success">Deployment completed successfully.</p>
+
+            <br />
+
+            <p><span class="terminal-prompt">$</span> <span class="terminal-cursor">_</span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="labs-section">
+      <div class="section-heading">
+        <span class="section-label">CHOOSE YOUR ENVIRONMENT</span>
+        <h2>Explore the labs</h2>
+        <p>Select a lab and start practising.</p>
+      </div>
+
+      <section class="labs-grid">
+        {% for slug, lab in labs.items() %}
+        <a
+          class="lab-card {% if slug == 'ansible' %}lab-ansible{% elif slug == 'jenkins' %}lab-jenkins{% else %}lab-bash{% endif %}"
+          href="/{{ slug }}"
+        >
+          <div class="lab-card-top">
+            <div class="lab-icon" aria-hidden="true">
+              {% if slug == "ansible" %}
+                A
+              {% elif slug == "jenkins" %}
+                J
+              {% else %}
+                B
+              {% endif %}
+            </div>
+
+            <div class="lab-image">
+              {% if slug == "ansible" %}
+                <img src="{{ url_for('static', filename='images/ansible.png') }}" alt="Ansible" />
+              {% elif slug == "jenkins" %}
+                <img src="{{ url_for('static', filename='images/jenkins.png') }}" alt="Jenkins" />
+              {% elif slug == "bash" %}
+                <img src="{{ url_for('static', filename='images/bash.png') }}" alt="Bash" />
+              {% else %}
+                <img src="{{ url_for('static', filename='images/linux.png') }}" alt="Linux" />
+              {% endif %}
+            </div>
+
+            <span class="lab-number">
+              {% if loop.index < 10 %}0{% endif %}{{ loop.index }}
+            </span>
+          </div>
+
+          <div class="lab-card-content">
+            <h3>
+              {% if slug == "ansible" %}
+                Ansible Lab
+              {% elif slug == "jenkins" %}
+                Jenkins Lab
+              {% elif slug == "bash" %}
+                Bash Lab
+              {% else %}
+                {{ lab.title }}
+              {% endif %}
+            </h3>
+
+            <p>{{ lab.description }}</p>
+          </div>
+
+          <div class="lab-card-footer">
+            <span>Start practising</span>
+            <span class="lab-arrow" aria-hidden="true">→</span>
+          </div>
+        </a>
+        {% endfor %}
+      </section>
+    </section>
+
+    <footer class="home-footer">
+      <span>Learning Labs</span>
+      <span>Learn · Practice · Improve</span>
+    </footer>
+  </main>
+
+  {% if session.get('user') or session.get('username') %}
+
+  <!-- Banner shown once per login session -->
+  <div
+    class="home-banner-modal"
+    id="homeBannerModal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Learning Labs announcement"
+  >
+    <div class="home-banner-content">
+      <button
+        class="home-banner-close"
+        type="button"
+        onclick="closeHomeBanner()"
+        aria-label="Close banner"
+      >
+        &times;
+      </button>
+
+      <img
+        src="{{ url_for('static', filename='images/learning-labs-banner.png') }}"
+        alt="Learning Labs banner"
+      />
     </div>
+  </div>
 
-    <script>
-      let subscriptionStatus = null;
-      let paymentInProgress = false;
+  <div
+    class="subscription-modal"
+    id="subscriptionModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="subscriptionModalTitle"
+  >
+    <div class="subscription-modal-content">
+      <button
+        class="modal-close"
+        type="button"
+        onclick="closeSubscriptionPlans()"
+        aria-label="Close"
+      >
+        &times;
+      </button>
 
-      function openSubscriptionPlans() {
-        document.getElementById("subscriptionMessage").textContent = "";
+      <h2 id="subscriptionModalTitle">Subscription Plans</h2>
+      <p>Choose a plan for access to all Learning Labs.</p>
 
-        const trialButton = document.getElementById("freeTrialButton");
+      <div class="mobile-number-field">
+        <label for="subscriptionPhone">Indian mobile number</label>
+        <input
+          type="tel"
+          id="subscriptionPhone"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="Enter 10-digit mobile number"
+          autocomplete="tel-national"
+        />
+      </div>
 
-        if (subscriptionStatus && subscriptionStatus.trial_used) {
-          trialButton.disabled = true;
-          trialButton.querySelector("span span").textContent =
-            "Your 1-day free trial has already been used";
-        } else {
-          trialButton.disabled = false;
-          trialButton.querySelector("span span").textContent =
-            "Get 24-hour access to all labs";
-        }
+      <button
+        type="button"
+        class="trial-option"
+        id="freeTrialButton"
+        onclick="startFreeTrial()"
+      >
+        <span>
+          <strong>1 Day Free Trial</strong>
+          <span>Get 24-hour access to all labs</span>
+        </span>
+        <strong>FREE</strong>
+      </button>
 
-        document.getElementById("subscriptionModal").classList.add("open");
+      <div class="plan-list">
+        <button class="plan-option" type="button" onclick="purchasePlan(3)">
+          <span>3 Days</span>
+          <strong>₹25</strong>
+        </button>
+
+        <button class="plan-option" type="button" onclick="purchasePlan(7)">
+          <span>7 Days</span>
+          <strong>₹65</strong>
+        </button>
+
+        <button class="plan-option" type="button" onclick="purchasePlan(15)">
+          <span>15 Days</span>
+          <strong>₹125</strong>
+        </button>
+
+        <button class="plan-option" type="button" onclick="purchasePlan(30)">
+          <span>30 Days</span>
+          <strong>₹250</strong>
+        </button>
+      </div>
+
+      <div id="subscriptionMessage" class="subscription-message"></div>
+    </div>
+  </div>
+
+  <script>
+    let subscriptionStatus = null;
+    let paymentInProgress = false;
+
+    function openHomeBanner() {
+      const banner = document.getElementById("homeBannerModal");
+
+      if (!banner) return;
+
+      if (sessionStorage.getItem("learningLabsBannerShown") === "true") {
+        return;
       }
 
-      function closeSubscriptionPlans() {
-        document.getElementById("subscriptionModal").classList.remove("open");
+      sessionStorage.setItem("learningLabsBannerShown", "true");
+      banner.classList.add("open");
+    }
+
+    function closeHomeBanner() {
+      const banner = document.getElementById("homeBannerModal");
+
+      if (banner) {
+        banner.classList.remove("open");
+      }
+    }
+
+    function openSubscriptionPlans() {
+      document.getElementById("subscriptionMessage").textContent = "";
+
+      const trialButton = document.getElementById("freeTrialButton");
+
+      if (subscriptionStatus && subscriptionStatus.trial_used) {
+        trialButton.disabled = true;
+        trialButton.querySelector("span span").textContent =
+          "Your 1-day free trial has already been used";
+      } else {
+        trialButton.disabled = false;
+        trialButton.querySelector("span span").textContent =
+          "Get 24-hour access to all labs";
       }
 
-      function showSubscriptionMessage(message) {
-        document.getElementById("subscriptionMessage").textContent = message;
+      document.getElementById("subscriptionModal").classList.add("open");
+    }
+
+    function closeSubscriptionPlans() {
+      document.getElementById("subscriptionModal").classList.remove("open");
+    }
+
+    function showSubscriptionMessage(message) {
+      document.getElementById("subscriptionMessage").textContent = message;
+    }
+
+    function getMobileNumber() {
+      const phone = document.getElementById("subscriptionPhone").value.trim();
+
+      if (!/^[6-9][0-9]{9}$/.test(phone)) {
+        showSubscriptionMessage(
+          "A valid 10-digit Indian mobile number is required."
+        );
+        document.getElementById("subscriptionPhone").focus();
+        return null;
       }
 
-      function getMobileNumber() {
-        const phone = document.getElementById("subscriptionPhone").value.trim();
+      return phone;
+    }
 
-        if (!/^[6-9][0-9]{9}$/.test(phone)) {
-          showSubscriptionMessage(
-            "A valid 10-digit Indian mobile number is required."
+    async function startFreeTrial() {
+      const button = document.getElementById("freeTrialButton");
+
+      if (button.disabled) return;
+
+      button.disabled = true;
+      showSubscriptionMessage("Activating your 1-day free trial...");
+
+      try {
+        const response = await fetch("/subscriptions/trial/start", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({})
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.success === false) {
+          throw new Error(
+            data.message || data.error || "Unable to activate free trial."
           );
-          document.getElementById("subscriptionPhone").focus();
-          return null;
         }
 
-        return phone;
+        closeSubscriptionPlans();
+        await loadSubscriptionStatus();
+      } catch (error) {
+        showSubscriptionMessage(error.message);
+        button.disabled = false;
       }
+    }
 
-      async function startFreeTrial() {
-        const button = document.getElementById("freeTrialButton");
+    async function purchasePlan(planDays) {
+      if (paymentInProgress) return;
 
-        if (button.disabled) return;
+      const phone = getMobileNumber();
+      if (!phone) return;
 
+      paymentInProgress = true;
+
+      document.querySelectorAll(".plan-option").forEach(button => {
         button.disabled = true;
-        showSubscriptionMessage("Activating your 1-day free trial...");
+      });
 
-        try {
-          const response = await fetch("/subscriptions/trial/start", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({})
-          });
+      showSubscriptionMessage("Creating your payment order...");
 
-          const data = await response.json();
+      try {
+        const response = await fetch("/subscriptions/payment/create", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            plan_days: Number(planDays),
+            phone: phone
+          })
+        });
 
-          if (!response.ok || data.success === false) {
-            throw new Error(
-              data.message || data.error || "Unable to activate free trial."
-            );
-          }
+        const data = await response.json();
 
-          closeSubscriptionPlans();
-          await loadSubscriptionStatus();
-        } catch (error) {
-          showSubscriptionMessage(error.message);
-          button.disabled = false;
+        if (!response.ok || !data.payment_session_id) {
+          throw new Error(
+            data.message || data.error || "Unable to create payment order."
+          );
         }
-      }
 
-      async function purchasePlan(planDays) {
-        if (paymentInProgress) return;
+        const cashfree = Cashfree({
+          mode: data.cashfree_environment === "production"
+            ? "production"
+            : "sandbox"
+        });
 
-        const phone = getMobileNumber();
-        if (!phone) return;
+        showSubscriptionMessage("Redirecting to Cashfree...");
 
-        paymentInProgress = true;
+        await cashfree.checkout({
+          paymentSessionId: data.payment_session_id,
+          redirectTarget: "_self"
+        });
+      } catch (error) {
+        showSubscriptionMessage(error.message);
 
         document.querySelectorAll(".plan-option").forEach(button => {
-          button.disabled = true;
+          button.disabled = false;
         });
+      } finally {
+        paymentInProgress = false;
+      }
+    }
 
-        showSubscriptionMessage("Creating your payment order...");
+    function formatExpiry(value) {
+      if (!value) return "";
 
-        try {
-          const response = await fetch("/subscriptions/payment/create", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              plan_days: Number(planDays),
-              phone: phone
-            })
-          });
+      const date = new Date(value);
 
-          const data = await response.json();
-
-          if (!response.ok || !data.payment_session_id) {
-            throw new Error(
-              data.message || data.error || "Unable to create payment order."
-            );
-          }
-
-          const cashfree = Cashfree({
-            mode: data.cashfree_environment === "production"
-              ? "production"
-              : "sandbox"
-          });
-
-          showSubscriptionMessage("Redirecting to Cashfree...");
-
-          await cashfree.checkout({
-            paymentSessionId: data.payment_session_id,
-            redirectTarget: "_self"
-          });
-        } catch (error) {
-          showSubscriptionMessage(error.message);
-
-          document.querySelectorAll(".plan-option").forEach(button => {
-            button.disabled = false;
-          });
-        } finally {
-          paymentInProgress = false;
-        }
+      if (Number.isNaN(date.getTime())) {
+        return value;
       }
 
-      function formatExpiry(value) {
-        if (!value) return "";
+      return date.toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
 
-        const date = new Date(value);
+    async function loadSubscriptionStatus() {
+      const banner = document.getElementById("subscriptionExpiryBanner");
 
-        if (Number.isNaN(date.getTime())) {
-          return value;
-        }
-
-        return date.toLocaleString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
+      try {
+        const response = await fetch("/subscriptions/status", {
+          credentials: "same-origin"
         });
-      }
 
-      async function loadSubscriptionStatus() {
-        const banner = document.getElementById("subscriptionExpiryBanner");
+        if (!response.ok) return;
 
-        try {
-          const response = await fetch("/subscriptions/status", {
-            credentials: "same-origin"
-          });
+        const data = await response.json();
+        subscriptionStatus = data;
 
-          if (!response.ok) return;
+        const trialActive = data.trial_active === true;
+        const trialExpiry = data.trial_expires_at;
 
-          const data = await response.json();
-          subscriptionStatus = data;
+        const labs = data.labs || {};
+        const paidLabSubscriptions = Object.entries(labs).filter(
+          ([, lab]) =>
+            lab.access_type === "subscription" &&
+            lab.has_access === true
+        );
 
-          const trialActive = data.trial_active === true;
-          const trialExpiry = data.trial_expires_at;
+        const hasAnyLabAccess = Object.values(labs).some(
+          lab => lab.has_access === true
+        );
 
-          const labs = data.labs || {};
-          const paidLabSubscriptions = Object.entries(labs).filter(
-            ([, lab]) =>
-              lab.access_type === "subscription" &&
-              lab.has_access === true
-          );
+        if (!banner) return;
 
-          const hasAnyLabAccess = Object.values(labs).some(
-            lab => lab.has_access === true
-          );
+        banner.className = "subscription-expiry-banner";
 
-          if (!banner) return;
+        if (trialActive) {
+          banner.classList.add("warning");
 
-          banner.className = "subscription-expiry-banner";
-
-          if (trialActive) {
-            banner.classList.add("warning");
-
-            if (trialExpiry) {
-              banner.textContent =
-                "Your 1-day free plan for all Learning Labs is active and will expire on " +
-                formatExpiry(trialExpiry) +
-                ". Upgrade to a paid plan to continue using all labs.";
-            } else {
-              banner.textContent =
-                "Your 1-day free plan for all Learning Labs is active. Upgrade to a paid plan before it expires to continue using all labs.";
-            }
-
-            return;
-          }
-
-          if (paidLabSubscriptions.length > 0) {
-            const paidExpiries = paidLabSubscriptions
-              .map(([slug, lab]) => ({
-                name: slug.charAt(0).toUpperCase() + slug.slice(1),
-                expiry: lab.expires_at
-              }))
-              .filter(item => item.expiry);
-
-            banner.classList.add("active");
-
-            if (paidExpiries.length > 0) {
-              const uniqueExpiries = [
-                ...new Set(paidExpiries.map(item => item.expiry))
-              ];
-
-              if (uniqueExpiries.length === 1) {
-                banner.textContent =
-                  "Your paid Learning Labs plan is active and expires on " +
-                  formatExpiry(uniqueExpiries[0]) + ".";
-              } else {
-                banner.textContent =
-                  "Your paid lab subscriptions: " +
-                  paidExpiries
-                    .map(item => item.name + ": " + formatExpiry(item.expiry))
-                    .join(" | ");
-              }
-            } else {
-              banner.textContent =
-                "Your paid Learning Labs subscription is active.";
-            }
-
-            return;
-          }
-
-          if (hasAnyLabAccess) {
-            banner.classList.add("active");
+          if (trialExpiry) {
             banner.textContent =
-              "Your Learning Labs access is active.";
-            return;
-          }
-
-          if (data.trial_used === true) {
-            banner.classList.add("expired");
-            banner.textContent =
-              "Your 1-day free plan has expired. Upgrade to a paid plan to continue using all Learning Labs.";
+              "Your 1-day free plan for all Learning Labs is active and will expire on " +
+              formatExpiry(trialExpiry) +
+              ". Upgrade to a paid plan to continue using all labs.";
           } else {
-            banner.classList.add("warning");
             banner.textContent =
-              "You do not have an active plan. Activate your 1-day free plan to get access to all Learning Labs, or choose a paid plan.";
+              "Your 1-day free plan for all Learning Labs is active. Upgrade to a paid plan before it expires to continue using all labs.";
           }
-        } catch (error) {
-          console.error("Unable to load subscription status:", error);
+
+          return;
         }
-      }
 
-      document
-        .getElementById("subscriptionModal")
-        .addEventListener("click", event => {
-          if (event.target.id === "subscriptionModal") {
-            closeSubscriptionPlans();
+        if (paidLabSubscriptions.length > 0) {
+          const paidExpiries = paidLabSubscriptions
+            .map(([slug, lab]) => ({
+              name: slug.charAt(0).toUpperCase() + slug.slice(1),
+              expiry: lab.expires_at
+            }))
+            .filter(item => item.expiry);
+
+          banner.classList.add("active");
+
+          if (paidExpiries.length > 0) {
+            const uniqueExpiries = [
+              ...new Set(paidExpiries.map(item => item.expiry))
+            ];
+
+            if (uniqueExpiries.length === 1) {
+              banner.textContent =
+                "Your paid Learning Labs plan is active and expires on " +
+                formatExpiry(uniqueExpiries[0]) + ".";
+            } else {
+              banner.textContent =
+                "Your paid lab subscriptions: " +
+                paidExpiries
+                  .map(item => item.name + ": " + formatExpiry(item.expiry))
+                  .join(" | ");
+            }
+          } else {
+            banner.textContent =
+              "Your paid Learning Labs subscription is active.";
           }
-        });
 
-      document.addEventListener("DOMContentLoaded", loadSubscriptionStatus);
-    </script>
-    {% endif %}
-  </body>
+          return;
+        }
+
+        if (hasAnyLabAccess) {
+          banner.classList.add("active");
+          banner.textContent =
+            "Your Learning Labs access is active.";
+          return;
+        }
+
+        if (data.trial_used === true) {
+          banner.classList.add("expired");
+          banner.textContent =
+            "Your 1-day free plan has expired. Upgrade to a paid plan to continue using all Learning Labs.";
+        } else {
+          banner.classList.add("warning");
+          banner.textContent =
+            "You do not have an active plan. Activate your 1-day free plan to get access to all Learning Labs, or choose a paid plan.";
+        }
+      } catch (error) {
+        console.error("Unable to load subscription status:", error);
+      }
+    }
+
+    document
+      .getElementById("subscriptionModal")
+      .addEventListener("click", event => {
+        if (event.target.id === "subscriptionModal") {
+          closeSubscriptionPlans();
+        }
+      });
+
+    document
+      .getElementById("homeBannerModal")
+      .addEventListener("click", event => {
+        if (event.target.id === "homeBannerModal") {
+          closeHomeBanner();
+        }
+      });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      openHomeBanner();
+      loadSubscriptionStatus();
+    });
+  </script>
+  {% endif %}
+</body>
 </html>

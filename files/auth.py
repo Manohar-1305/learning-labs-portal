@@ -10,6 +10,7 @@ from functools import wraps
 
 import psycopg2
 from authlib.integrations.flask_client import OAuth
+from dotenv import dotenv_values
 
 from flask import (
     abort,
@@ -29,6 +30,8 @@ from files.config import get_db as _get_db, get_cursor, convert_placeholders
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KEY_PATH = os.path.join(BASE_DIR, ".secret_key")
+FILES_ENV_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+ROOT_ENV_PATH = os.path.join(BASE_DIR, ".env")
 
 USERNAME_RE = re.compile(r"^[^@]{3,30}$")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -74,12 +77,29 @@ socketio.manage_session = True
 
 
 # ---------- Google OAuth ----------
-# ---------- Google OAuth ----------
+
+def _get_config_value(key):
+    value = os.environ.get(key, "").strip()
+
+    if value:
+        return value
+
+    for env_path in (FILES_ENV_PATH, ROOT_ENV_PATH):
+        if os.path.isfile(env_path):
+            config = dotenv_values(env_path, encoding="utf-8-sig")
+            value = (config.get(key) or "").strip()
+
+            if value:
+                return value
+
+    return ""
+
+
 oauth = OAuth(app)
 
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI")
+GOOGLE_CLIENT_ID = _get_config_value("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = _get_config_value("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = _get_config_value("GOOGLE_REDIRECT_URI")
 
 if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
     oauth.register(
@@ -90,15 +110,13 @@ if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
         client_kwargs={"scope": "openid email profile"},
     )
 
-@app.route("/auth/google")
-def google_login():
-    if not GOOGLE_REDIRECT_URI:
-        return "GOOGLE_REDIRECT_URI is not configured", 500
-
-    next_url = _safe_next(request.args.get("next"))
-    session["google_next"] = next_url
-
-    return oauth.google.authorize_redirect(GOOGLE_REDIRECT_URI)
+print(
+    "[Google OAuth] "
+    f"Client ID configured: {bool(GOOGLE_CLIENT_ID)}, "
+    f"Client secret configured: {bool(GOOGLE_CLIENT_SECRET)}, "
+    f"Redirect URI configured: {bool(GOOGLE_REDIRECT_URI)}",
+    flush=True,
+)
 
 
 # ---------- database ----------
@@ -362,6 +380,22 @@ def _find_valid_reset(token):
 
 
 # ---------- Google login routes ----------
+
+@app.route("/auth/google")
+def google_login():
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        flash("Google authentication is not configured.", "error")
+        return redirect(url_for("login"))
+
+    if not GOOGLE_REDIRECT_URI:
+        flash("Google redirect URI is not configured.", "error")
+        return redirect(url_for("login"))
+
+    next_url = _safe_next(request.args.get("next"))
+    session["google_next"] = next_url
+
+    return oauth.google.authorize_redirect(GOOGLE_REDIRECT_URI)
+
 
 @app.route("/auth/google/callback")
 def google_callback():

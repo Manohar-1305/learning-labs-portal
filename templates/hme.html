@@ -1,341 +1,1270 @@
+
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Learning Labs</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='home.css') }}"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Labs</title>
 
-    <style>
-      .learning-banner-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 999999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: rgba(0, 0, 0, 0.78);
-        backdrop-filter: blur(6px);
-        animation: bannerFadeIn 0.3s ease;
-      }
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
 
-      .learning-banner-overlay.visible {
-        display: flex;
-      }
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
-      .learning-banner-container {
-        position: relative;
-        width: 100%;
-        max-width: 1100px;
-        max-height: 90vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: bannerZoomIn 0.3s ease;
-      }
+  <style>
+    .learning-banner-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(6px);
+      animation: bannerFadeIn 0.3s ease;
+    }
 
-      .learning-banner-container img {
-        display: block;
-        max-width: 100%;
-        max-height: 85vh;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-        border-radius: 14px;
-        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
-      }
+    .learning-banner-overlay.visible { display: flex; }
+
+    .learning-banner-container {
+      position: relative;
+      width: 100%;
+      max-width: 1100px;
+      max-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: bannerZoomIn 0.3s ease;
+    }
+
+    .learning-banner-container img {
+      display: block;
+      max-width: 100%;
+      max-height: 85vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 14px;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+    }
+
+    .learning-banner-close {
+      position: absolute;
+      top: -16px;
+      right: -16px;
+      z-index: 2;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: #111827;
+      color: #fff;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .learning-banner-close:hover {
+      background: #dc2626;
+      transform: scale(1.08);
+    }
+
+    @keyframes bannerFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes bannerZoomIn {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .lab-card { display: flex; flex-direction: column; }
+    .lab-card-content { flex: 1; }
+
+    .lab-card-actions {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    .lab-action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      min-width: 0;
+      min-height: 42px;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .lab-action-btn:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .lab-action-btn.secondary {
+      background: #fff;
+      color: #2563eb;
+      border: 1px solid #2563eb;
+    }
+
+    .lab-action-btn.secondary:hover { background: #eff6ff; }
+
+    .lab-action-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .lab-action-btn.expired {
+      background: #9ca3af;
+      color: #fff;
+      cursor: not-allowed;
+      border-color: #9ca3af;
+    }
+
+    .lab-access-message {
+      display: none;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #b45309;
+      margin-top: 12px;
+    }
+
+    .lab-access-message.visible { display: block; }
+    .lab-access-message.expired { color: #dc2626; }
+
+    .subscription-status {
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 8px;
+      color: #15803d;
+      line-height: 1.5;
+    }
+
+    .subscription-nav-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 9px 15px;
+      border: 1px solid #9ca3af;
+      border-radius: 7px;
+      background: #6b7280;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .subscription-nav-btn:hover {
+      background: #4b5563;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .subscription-nav-info {
+      display: inline-flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      max-width: 210px;
+      font-size: 11px;
+      line-height: 1.4;
+      color: #dc2626;
+    }
+
+    .subscription-nav-info.expired { color: #dc2626; }
+
+    .subscription-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+    }
+
+    .subscription-modal.visible { display: flex; }
+
+    .subscription-modal-content {
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 26px;
+      border-radius: 16px;
+      background: #fff;
+      color: #111827;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.3);
+    }
+
+    .subscription-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+
+    .subscription-modal-header h2 { margin: 0; font-size: 22px; }
+
+    .subscription-modal-close {
+      border: 0;
+      background: transparent;
+      color: #374151;
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    .subscription-description {
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .subscription-plans { display: grid; gap: 12px; }
+
+    .subscription-plan {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .subscription-plan:has(input:checked) {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .subscription-plan input {
+      accent-color: #2563eb;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .subscription-plan strong { display: block; font-size: 15px; }
+
+    .subscription-plan small {
+      display: block;
+      margin-top: 4px;
+      color: #6b7280;
+    }
+
+    .subscription-plan-price {
+      font-size: 17px;
+      font-weight: 700;
+      color: #111827;
+      white-space: nowrap;
+    }
+
+    .subscription-phone {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin-top: 18px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .subscription-submit {
+      width: 100%;
+      padding: 13px;
+      margin-top: 16px;
+      border: 0;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .subscription-submit:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    .subscription-error {
+      display: none;
+      color: #dc2626;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+
+    .subscription-error.visible { display: block; }
+
+    @media (max-width: 600px) {
+      .learning-banner-overlay { padding: 12px; }
+
+      .learning-banner-container img { max-height: 80vh; }
 
       .learning-banner-close {
-        position: absolute;
-        top: -16px;
-        right: -16px;
-        z-index: 2;
-        width: 42px;
-        height: 42px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid #fff;
-        border-radius: 50%;
-        background: #111827;
-        color: #fff;
-        font-size: 28px;
-        line-height: 1;
-        cursor: pointer;
-        transition:
-          background 0.2s ease,
-          transform 0.2s ease;
+        top: -12px;
+        right: -8px;
+        width: 36px;
+        height: 36px;
+        font-size: 24px;
       }
 
-      .learning-banner-close:hover {
-        background: #dc2626;
-        transform: scale(1.08);
+      .subscription-modal-content { padding: 20px; }
+
+      .lab-card-actions { flex-direction: column; }
+
+      .lab-action-btn {
+        width: 100%;
+        box-sizing: border-box;
       }
 
-      @keyframes bannerFadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
+      .subscription-nav-info { display: none; }
+    }
+  </style>
+</head>
 
-      @keyframes bannerZoomIn {
-        from {
-          opacity: 0;
-          transform: scale(0.92);
-        }
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
-      }
+<body>
+  <main class="labs-page">
 
-      @media (max-width: 600px) {
-        .learning-banner-overlay {
-          padding: 12px;
-        }
+    <nav class="home-nav">
+      <a href="/" class="home-brand" aria-label="Learning Labs home">
+        <strong>Learning Labs</strong>
+      </a>
 
-        .learning-banner-container img {
-          max-height: 80vh;
-        }
+      <div class="nav-actions">
 
-        .learning-banner-close {
-          top: -12px;
-          right: -8px;
-          width: 36px;
-          height: 36px;
-          font-size: 24px;
-        }
-      }
-    </style>
-  </head>
+        {% if session.get('is_admin') %}
+        <a class="nav-link" href="/admin">Admin</a>
+        {% endif %}
 
-  <body>
-    <main class="labs-page">
-      <nav class="home-nav">
-        <a href="/" class="home-brand" aria-label="Learning Labs home">
-          <strong>Learning Labs</strong>
+        {% if not session.get('is_admin') %}
+        <a
+          class="nav-link"
+          href="/new-account"
+          target="_blank"
+          rel="noopener"
+        >
+          Add account
         </a>
 
-        <div class="nav-actions">
-          {% if session.get('is_admin') %}
-          <a class="nav-link" href="/admin">Admin</a>
-          {% endif %}
+        <a class="contribute-btn" href="/contribute">
+          Contribute
+        </a>
+        {% endif %}
 
-          <a
-            class="nav-link"
-            href="/new-account"
-            target="_blank"
-            rel="noopener"
-          >
-            Add account
-          </a>
+        {% if session.get('user') or session.get('username') %}
 
-          <a class="contribute-btn" href="/contribute"> Contribute </a>
+        {% if not session.get('is_admin') %}
+        <a class="suggest-lab-btn" href="/suggest-lab">
+          Suggest a Lab
+        </a>
 
-          {% if session.get('user') or session.get('username') %}
-
-          <a class="suggest-lab-btn" href="/suggest-lab"> Suggest a Lab </a>
-
-          <span class="user-welcome">
-            Welcome,
-            <strong
-              >{{ session.get('username') or session.get('user') }}</strong
-            >
-          </span>
-
-          <a class="logout-btn" href="/logout">Logout</a>
-
-          {% else %}
-          <a class="login-btn" href="/login">Login</a>
-          {% endif %}
-        </div>
-      </nav>
-
-      <div class="contribution-banner">
-        <p>
-          You may contribute and learn to help keep this lab up and running.
-          Your support helps us maintain and improve these learning environments
-          for everyone.
-        </p>
-      </div>
-
-      <section class="hero-section">
-        <div class="hero-content">
-          <span class="hero-label">PRACTICAL LEARNING ENVIRONMENTS</span>
-
-          <h1>
-            Learn by doing.<br />
-            <span>Build real skills.</span>
-          </h1>
-
-          <p>
-            Explore Ansible, Jenkins and Bash through hands-on labs. Work with
-            real commands, practise automation and build confidence using the
-            tools you'll encounter in real technical environments.
-          </p>
-
-          <div class="hero-tags">
-            <span>Linux</span>
-            <span>Automation</span>
-            <span>DevOps</span>
-            <span>Hands-on practice</span>
-          </div>
-        </div>
-
-        <div class="hero-visual">
-          <div class="terminal-card">
-            <div class="terminal-top">
-              <div class="terminal-dots">
-                <i></i>
-                <i></i>
-                <i></i>
-              </div>
-              <span>learning-labs — terminal</span>
-            </div>
-
-            <div class="terminal-body">
-              <p><span class="terminal-prompt">$</span> ansible --version</p>
-              <p class="terminal-result">ansible [core 2.16.3]</p>
-
-              <br />
-
-              <p>
-                <span class="terminal-prompt">$</span> systemctl status jenkins
-              </p>
-              <p class="terminal-success">Active: active (running)</p>
-
-              <br />
-
-              <p><span class="terminal-prompt">$</span> bash deploy.sh</p>
-              <p class="terminal-success">Deployment completed successfully.</p>
-
-              <br />
-
-              <p>
-                <span class="terminal-prompt">$</span>
-                <span class="terminal-cursor">_</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="labs-section">
-        <div class="section-heading">
-          <span class="section-label">CHOOSE YOUR ENVIRONMENT</span>
-          <h2>Explore the labs</h2>
-          <p>Select a lab and start practising.</p>
-        </div>
-
-        <section class="labs-grid">
-          {% for slug, lab in labs.items() %}
-          <a
-            class="lab-card {% if slug == 'ansible' %}lab-ansible{% elif slug == 'jenkins' %}lab-jenkins{% else %}lab-bash{% endif %}"
-            href="/{{ slug }}"
-          >
-            <div class="lab-card-top">
-              <div class="lab-icon" aria-hidden="true">
-                {% if slug == "ansible" %} A {% elif slug == "jenkins" %} J {%
-                else %} B {% endif %}
-              </div>
-
-              <span class="lab-number">
-                {% if loop.index < 10 %}0{% endif %}{{ loop.index }}
-              </span>
-            </div>
-
-            <div class="lab-card-content">
-              <h3>
-                {% if slug == "ansible" %} Ansible Lab {% elif slug == "jenkins"
-                %} Jenkins Lab {% elif slug == "bash" %} Bash Lab {% else %} {{
-                lab.title }} {% endif %}
-              </h3>
-
-              <p>{{ lab.description }}</p>
-            </div>
-
-            <div class="lab-card-footer">
-              <span>Start practising</span>
-              <span class="lab-arrow" aria-hidden="true">→</span>
-            </div>
-          </a>
-          {% endfor %}
-        </section>
-      </section>
-
-      <footer class="home-footer">
-        <span>Learning Labs</span>
-        <span>Learn · Practice · Improve</span>
-      </footer>
-    </main>
-
-    {% if session.get('user') or session.get('username') %}
-    <div class="learning-banner-overlay" id="learningBannerOverlay">
-      <div class="learning-banner-container">
+        {% if session.get('user_id') %}
         <button
           type="button"
-          class="learning-banner-close"
-          id="learningBannerClose"
-          aria-label="Close banner"
+          class="subscription-nav-btn"
+          id="navSubscriptionButton"
+        >
+          Subscription
+        </button>
+
+        <span
+          class="subscription-nav-info"
+          id="navSubscriptionInfo"
+          aria-live="polite"
+        ></span>
+        {% endif %}
+        {% endif %}
+
+        <span class="user-welcome">
+          Welcome,
+          <strong>{{ session.get('username') or session.get('user') }}</strong>
+        </span>
+
+        <a class="logout-btn" href="/logout">Logout</a>
+
+        {% else %}
+
+        <a class="login-btn" href="/login">Login</a>
+
+        {% endif %}
+
+      </div>
+    </nav>
+
+    <div class="contribution-banner">
+      <p>
+        You may contribute and learn to help keep this lab up and running.
+        Your support helps us maintain and improve these learning environments
+        for everyone.
+      </p>
+    </div>
+
+    <section class="hero-section">
+      <div class="hero-content">
+
+        <span class="hero-label">
+          PRACTICAL LEARNING ENVIRONMENTS
+        </span>
+
+        <h1>
+          Learn by doing.<br />
+          <span>Build real skills.</span>
+        </h1>
+
+        <p>
+          Explore Ansible, Jenkins and Bash through hands-on labs. Work with
+          real commands, practise automation and build confidence using the
+          tools you'll encounter in real technical environments.
+        </p>
+
+        <div class="hero-tags">
+          <span>Linux</span>
+          <span>Automation</span>
+          <span>DevOps</span>
+          <span>Hands-on practice</span>
+        </div>
+
+      </div>
+
+      <div class="hero-visual">
+        <div class="terminal-card">
+
+          <div class="terminal-top">
+            <div class="terminal-dots">
+              <i></i>
+              <i></i>
+              <i></i>
+            </div>
+
+            <span>learning-labs — terminal</span>
+          </div>
+
+          <div class="terminal-body">
+
+            <p>
+              <span class="terminal-prompt">$</span>
+              ansible --version
+            </p>
+
+            <p class="terminal-result">
+              ansible [core 2.16.3]
+            </p>
+
+            <br />
+
+            <p>
+              <span class="terminal-prompt">$</span>
+              systemctl status jenkins
+            </p>
+
+            <p class="terminal-success">
+              Active: active (running)
+            </p>
+
+            <br />
+
+            <p>
+              <span class="terminal-prompt">$</span>
+              bash deploy.sh
+            </p>
+
+            <p class="terminal-success">
+              Deployment completed successfully.
+            </p>
+
+            <br />
+
+            <p>
+              <span class="terminal-prompt">$</span>
+              <span class="terminal-cursor">_</span>
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="labs-section">
+
+      <div class="section-heading">
+        <span class="section-label">CHOOSE YOUR ENVIRONMENT</span>
+        <h2>Explore the labs</h2>
+        <p>Select a lab and start practising.</p>
+      </div>
+
+      <section class="labs-grid">
+
+        {% for slug, lab in labs.items() %}
+
+        <article
+          class="lab-card {% if slug == 'ansible' %}lab-ansible{% elif slug == 'jenkins' %}lab-jenkins{% else %}lab-bash{% endif %}"
+          data-lab="{{ slug }}"
+        >
+
+          <div class="lab-card-top">
+
+            <div class="lab-icon" aria-hidden="true">
+              {% if slug == "ansible" %}
+                A
+              {% elif slug == "jenkins" %}
+                J
+              {% elif slug == "linux" %}
+                L
+              {% else %}
+                B
+              {% endif %}
+            </div>
+
+            <span class="lab-number">
+              {% if loop.index < 10 %}0{% endif %}{{ loop.index }}
+            </span>
+
+          </div>
+
+          <div class="lab-card-content">
+
+            <h3>
+              {% if slug == "ansible" %}
+                Ansible Lab
+              {% elif slug == "jenkins" %}
+                Jenkins Lab
+              {% elif slug == "bash" %}
+                Bash Lab
+              {% elif slug == "linux" %}
+                Linux Lab
+              {% else %}
+                {{ lab.title }}
+              {% endif %}
+            </h3>
+
+            <p>{{ lab.description }}</p>
+
+            {% if session.get('user_id') %}
+
+            <div
+              class="lab-access-message"
+              id="message-{{ slug }}"
+              aria-live="polite"
+            ></div>
+
+            <div
+              class="subscription-status"
+              id="status-{{ slug }}"
+            ></div>
+
+            {% endif %}
+
+          </div>
+
+          <div class="lab-card-footer">
+
+            {% if session.get('user_id') %}
+
+            <div class="lab-card-actions">
+
+              <button
+                type="button"
+                class="lab-action-btn practice-button"
+                id="practice-{{ slug }}"
+                data-lab="{{ slug }}"
+              >
+                Practise freely for 1 day
+              </button>
+
+              <button
+                type="button"
+                class="lab-action-btn secondary enroll-button"
+                id="enroll-{{ slug }}"
+                data-lab="{{ slug }}"
+              >
+                Enroll
+              </button>
+
+            </div>
+
+            {% else %}
+
+            <div class="lab-card-actions">
+
+              <a href="/login" class="lab-action-btn">
+                Practise freely for 1 day
+              </a>
+
+              <a href="/login" class="lab-action-btn secondary">
+                Enroll
+              </a>
+
+            </div>
+
+            {% endif %}
+
+          </div>
+
+        </article>
+
+        {% endfor %}
+
+      </section>
+    </section>
+
+    <footer class="home-footer">
+      <span>Learning Labs</span>
+      <span>Learn · Practice · Improve</span>
+    </footer>
+
+  </main>
+
+  {% if session.get('user_id') and not session.get('is_admin') %}
+
+  <div
+    class="subscription-modal"
+    id="subscriptionModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="subscriptionTitle"
+  >
+
+    <div class="subscription-modal-content">
+
+      <div class="subscription-modal-header">
+
+        <h2 id="subscriptionTitle">Learning Labs Subscription</h2>
+
+        <button
+          type="button"
+          class="subscription-modal-close"
+          id="closeSubscriptionModal"
+          aria-label="Close"
         >
           &times;
         </button>
 
-        <img
-          src="{{ url_for('static', filename='images/learning-labs-banner.png') }}"
-          alt="Learning Labs Portal"
-        />
       </div>
+
+      <p class="subscription-description" id="subscriptionDescription">
+        Choose a subscription plan to access Linux, Jenkins, Bash and Ansible.
+        Your selected plan will apply to all four labs.
+      </p>
+
+      <div class="subscription-plans">
+
+        <label class="subscription-plan">
+          <span>
+            <strong>1 Day</strong>
+            <small>Access to all four labs for 1 day</small>
+          </span>
+          <span class="subscription-plan-price">₹10</span>
+          <input type="radio" name="plan_days" value="1" checked />
+        </label>
+
+        <label class="subscription-plan">
+          <span>
+            <strong>3 Days</strong>
+            <small>Access to all four labs for 3 days</small>
+          </span>
+          <span class="subscription-plan-price">₹25</span>
+          <input type="radio" name="plan_days" value="3" />
+        </label>
+
+        <label class="subscription-plan">
+          <span>
+            <strong>7 Days</strong>
+            <small>Access to all four labs for 7 days</small>
+          </span>
+          <span class="subscription-plan-price">₹65</span>
+          <input type="radio" name="plan_days" value="7" />
+        </label>
+
+        <label class="subscription-plan">
+          <span>
+            <strong>15 Days</strong>
+            <small>Access to all four labs for 15 days</small>
+          </span>
+          <span class="subscription-plan-price">₹125</span>
+          <input type="radio" name="plan_days" value="15" />
+        </label>
+
+        <label class="subscription-plan">
+          <span>
+            <strong>30 Days</strong>
+            <small>Access to all four labs for 30 days</small>
+          </span>
+          <span class="subscription-plan-price">₹250</span>
+          <input type="radio" name="plan_days" value="30" />
+        </label>
+
+      </div>
+
+      <input
+        type="tel"
+        class="subscription-phone"
+        id="customerPhone"
+        placeholder="Enter 10-digit mobile number"
+        maxlength="10"
+        autocomplete="tel"
+      />
+
+      <button
+        type="button"
+        class="subscription-submit"
+        id="subscriptionSubmit"
+      >
+        Continue to payment
+      </button>
+
+      <div
+        class="subscription-error"
+        id="subscriptionError"
+        role="alert"
+      ></div>
+
     </div>
+  </div>
 
-    <script>
-      (() => {
-        const STORAGE_KEY = "learningLabsBannerShown";
+  <div
+    class="learning-banner-overlay"
+    id="learningBannerOverlay"
+  >
 
-        const overlay = document.getElementById("learningBannerOverlay");
-        const closeButton = document.getElementById("learningBannerClose");
+    <div class="learning-banner-container">
 
-        if (!overlay || !closeButton) return;
+      <button
+        type="button"
+        class="learning-banner-close"
+        id="learningBannerClose"
+        aria-label="Close banner"
+      >
+        &times;
+      </button>
+
+      <img
+        src="{{ url_for('static', filename='images/learning-labs-banner.png') }}"
+        alt="Learning Labs Portal"
+      />
+
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "learningLabsBannerShown";
+
+      const overlay = document.getElementById("learningBannerOverlay");
+      const closeButton = document.getElementById("learningBannerClose");
+
+      if (!overlay || !closeButton) return;
+
+      try {
+        if (sessionStorage.getItem(STORAGE_KEY) !== "true") {
+          overlay.classList.add("visible");
+          sessionStorage.setItem(STORAGE_KEY, "true");
+        }
+      } catch (_) {
+        overlay.classList.add("visible");
+      }
+
+      function closeBanner() {
+        overlay.classList.remove("visible");
+      }
+
+      closeButton.addEventListener("click", closeBanner);
+
+      overlay.addEventListener("click", event => {
+        if (event.target === overlay) {
+          closeBanner();
+        }
+      });
+
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          closeBanner();
+        }
+      });
+    })();
+
+
+    (() => {
+
+      const modal = document.getElementById("subscriptionModal");
+
+      if (!modal) return;
+
+      let selectedLab = "all";
+
+      const errorBox = document.getElementById("subscriptionError");
+      const submitButton = document.getElementById("subscriptionSubmit");
+
+      const cashfreeMode =
+        "{{ 'production' if config.get('CASHFREE_ENV') == 'production' else 'sandbox' }}";
+
+
+      function showError(message) {
+        errorBox.textContent = message;
+        errorBox.classList.add("visible");
+      }
+
+
+      function clearError() {
+        errorBox.textContent = "";
+        errorBox.classList.remove("visible");
+      }
+
+
+      function openModal(lab = "all") {
+        selectedLab = lab;
+
+        clearError();
+
+        document.getElementById("subscriptionTitle").textContent =
+          "Learning Labs Subscription";
+
+        document.getElementById("subscriptionDescription").textContent =
+          "Choose a plan to access Linux, Jenkins, Bash and Ansible. Your selected plan applies to all four labs.";
+
+        modal.classList.add("visible");
+      }
+
+
+      function closeModal() {
+        modal.classList.remove("visible");
+        selectedLab = "all";
+        clearError();
+      }
+
+
+      document.getElementById("closeSubscriptionModal")
+        .addEventListener("click", closeModal);
+
+
+      const navSubscriptionButton =
+        document.getElementById("navSubscriptionButton");
+
+      if (navSubscriptionButton) {
+        navSubscriptionButton.addEventListener("click", () => {
+          openModal("all");
+        });
+      }
+
+
+      modal.addEventListener("click", event => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+
+      async function fetchJSON(url, options = {}) {
+
+        const response = await fetch(url, {
+          credentials: "same-origin",
+          ...options
+        });
+
+        const contentType = response.headers.get("content-type") || "";
+
+        if (!contentType.includes("application/json")) {
+          throw new Error(
+            "Server returned an invalid response. Check the subscription API."
+          );
+        }
+
+        const result = await response.json();
+
+        if (!response.ok || result.success === false) {
+          throw new Error(
+            result.message ||
+            result.error ||
+            "Request failed. Please try again."
+          );
+        }
+
+        return result;
+      }
+
+
+      async function loadSubscriptionStatus() {
+
+        const data = await fetchJSON("/subscriptions/status");
+
+        if (!data.labs) {
+          throw new Error("Subscription status is missing lab information.");
+        }
+
+        const navInfo = document.getElementById("navSubscriptionInfo");
+
+        const labEntries = Object.values(data.labs);
+        const paidAccess = labEntries.find(
+          access => access.has_access && access.access_type === "subscription"
+        );
+
+        const trialAccess = labEntries.find(
+          access => access.has_access && access.access_type === "trial"
+        );
+
+        if (navInfo) {
+          navInfo.classList.remove("expired");
+
+          if (paidAccess) {
+            navInfo.textContent = "Paid subscription active";
+
+            if (paidAccess.expires_at) {
+              navInfo.textContent +=
+                " · Expires " +
+                new Date(paidAccess.expires_at).toLocaleDateString();
+            }
+
+          } else if (trialAccess) {
+            navInfo.textContent = "Free trial active";
+
+            if (trialAccess.expires_at) {
+              navInfo.textContent +=
+                " · Expires " +
+                new Date(trialAccess.expires_at).toLocaleDateString();
+            }
+
+          } else if (data.trial_used) {
+            navInfo.textContent = "No active subscription";
+            navInfo.classList.add("expired");
+
+          } else {
+            navInfo.textContent = "Free trial available";
+          }
+        }
+
+        document.querySelectorAll(".lab-card[data-lab]").forEach(card => {
+
+          const lab = card.dataset.lab;
+          const access = data.labs[lab];
+
+          if (!access) return;
+
+          const practiceButton =
+            document.getElementById("practice-" + lab);
+
+          const enrollButton =
+            document.getElementById("enroll-" + lab);
+
+          const message =
+            document.getElementById("message-" + lab);
+
+          const status =
+            document.getElementById("status-" + lab);
+
+          const hasAccess = access.has_access === true;
+          const isPaidSubscription =
+            hasAccess && access.access_type !== "trial";
+
+          practiceButton.disabled = false;
+          practiceButton.classList.remove("expired");
+
+          if (isPaidSubscription) {
+            enrollButton.textContent = "Upgrade";
+          } else {
+            enrollButton.textContent = "Enroll";
+          }
+
+          if (hasAccess) {
+
+            practiceButton.textContent = "Start practising";
+
+            status.textContent =
+              access.access_type === "trial"
+                ? "Free trial active"
+                : "Subscription active";
+
+            if (access.expires_at) {
+              status.textContent +=
+                " · Expires " +
+                new Date(access.expires_at).toLocaleString();
+            }
+
+            message.textContent = "";
+            message.classList.remove("visible", "expired");
+
+          } else if (data.trial_used) {
+
+            practiceButton.textContent = "Trial expired";
+            practiceButton.disabled = true;
+            practiceButton.classList.add("expired");
+
+            message.textContent =
+              "Your free trial has expired. Enroll in a subscription plan to continue practising.";
+
+            message.classList.add("visible", "expired");
+            status.textContent = "";
+
+          } else {
+
+            practiceButton.textContent = "Practise freely for 1 day";
+
+            message.textContent =
+              "Get FREE access to all four labs for 24 hours.";
+
+            message.classList.add("visible");
+            message.classList.remove("expired");
+
+            status.textContent = "";
+
+          }
+
+        });
+
+        return data;
+      }
+
+
+      async function startFreeTrial() {
+
+        return await fetchJSON("/subscriptions/trial/start", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({})
+        });
+
+      }
+
+
+      async function handlePractice(button) {
+
+        const lab = button.dataset.lab;
+
+        if (button.disabled) return;
+
+        button.disabled = true;
 
         try {
-          if (sessionStorage.getItem(STORAGE_KEY) !== "true") {
-            overlay.classList.add("visible");
-            sessionStorage.setItem(STORAGE_KEY, "true");
+
+          const status = await loadSubscriptionStatus();
+          const access = status.labs[lab];
+
+          if (access && access.has_access) {
+            window.location.href = "/" + encodeURIComponent(lab);
+            return;
           }
-        } catch (_) {
-          overlay.classList.add("visible");
+
+          if (status.trial_used) {
+            button.textContent = "Trial expired";
+            button.disabled = true;
+            return;
+          }
+
+          const confirmed = confirm(
+            "Start practising freely for 1 day?\n\n" +
+            "You will get access to all four labs:\n" +
+            "Linux, Jenkins, Bash and Ansible.\n\n" +
+            "Your free trial expires automatically after 24 hours.\n\n" +
+            "After your free trial expires, enroll in a subscription plan to continue learning."
+          );
+
+          if (!confirmed) return;
+
+          button.textContent = "Activating trial...";
+
+          const result = await startFreeTrial();
+
+          await loadSubscriptionStatus();
+
+          alert(
+            result.message ||
+            "Your free trial has been activated for 24 hours."
+          );
+
+          window.location.href = "/" + encodeURIComponent(lab);
+
+        } catch (error) {
+
+          alert(error.message);
+
+          button.disabled = false;
+
+          try {
+            await loadSubscriptionStatus();
+          } catch (refreshError) {
+            console.error(refreshError);
+          }
+
         }
 
-        function closeBanner() {
-          overlay.classList.remove("visible");
+      }
+
+
+      document.querySelectorAll(".practice-button").forEach(button => {
+
+        button.addEventListener("click", () => {
+          handlePractice(button);
+        });
+
+      });
+
+
+      document.querySelectorAll(".enroll-button").forEach(button => {
+
+        button.addEventListener("click", () => {
+          openModal(button.dataset.lab);
+        });
+
+      });
+
+
+      submitButton.addEventListener("click", async () => {
+
+        if (!selectedLab) return;
+
+        clearError();
+
+        const selectedPlan = document.querySelector(
+          'input[name="plan_days"]:checked'
+        );
+
+        const phone = document.getElementById("customerPhone").value.trim();
+
+        if (!selectedPlan) {
+          showError("Please select a subscription plan.");
+          return;
         }
 
-        closeButton.addEventListener("click", closeBanner);
+        if (!/^[6-9][0-9]{9}$/.test(phone)) {
+          showError("Please enter a valid 10-digit Indian mobile number.");
+          return;
+        }
 
-        overlay.addEventListener("click", (event) => {
-          if (event.target === overlay) {
-            closeBanner();
-          }
-        });
+        submitButton.disabled = true;
+        submitButton.textContent = "Creating payment...";
 
-        document.addEventListener("keydown", (event) => {
-          if (event.key === "Escape") {
-            closeBanner();
+        try {
+
+          const result = await fetchJSON(
+            "/subscriptions/payment/create",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                plan_days: Number(selectedPlan.value),
+                phone: phone
+              })
+            }
+          );
+
+          if (!result.payment_session_id) {
+            throw new Error("Payment session was not returned by the server.");
           }
-        });
-      })();
-    </script>
-    {% endif %}
-  </body>
+
+          const cashfree = await Cashfree({
+            mode: result.cashfree_environment || cashfreeMode
+          });
+
+          await cashfree.checkout({
+            paymentSessionId: result.payment_session_id,
+            redirectTarget: "_self"
+          });
+
+        } catch (error) {
+
+          showError(error.message);
+
+          submitButton.disabled = false;
+          submitButton.textContent = "Continue to payment";
+
+        }
+
+      });
+
+
+      async function initializeSubscriptions() {
+
+        const params = new URLSearchParams(window.location.search);
+        const paymentStatus = params.get("payment");
+
+        if (paymentStatus === "success") {
+
+          alert(
+            "Payment successful! Your subscription is active for all four labs."
+          );
+
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+
+        } else if (paymentStatus === "failed") {
+
+          alert(
+            "Payment could not be verified. Please check your payment status and try again."
+          );
+
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+
+        }
+
+        try {
+
+          await loadSubscriptionStatus();
+
+        } catch (error) {
+
+          console.error("Subscription initialization failed:", error);
+
+          document.querySelectorAll(".lab-access-message").forEach(message => {
+
+            message.textContent =
+              "Unable to load subscription information. Please refresh the page.";
+
+            message.classList.add("visible");
+
+          });
+
+        }
+
+      }
+
+
+      initializeSubscriptions();
+
+    })();
+
+  </script>
+
+  {% endif %}
+
+</body>
 </html>

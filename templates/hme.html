@@ -160,41 +160,108 @@
       line-height: 1.5;
     }
 
-    .subscription-nav-btn {
+    /* User profile dropdown */
+    .user-menu {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .user-menu-toggle {
+      width: 42px;
+      height: 42px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 7px;
-      padding: 9px 15px;
-      border: 1px solid #9ca3af;
-      border-radius: 7px;
-      background: #6b7280;
+      border: 0;
+      border-radius: 50%;
+      background: #2563eb;
       color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
+      font-size: 17px;
+      font-weight: 800;
       cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 3px 12px rgba(37, 99, 235, .25);
     }
 
-    .subscription-nav-btn:hover {
-      background: #4b5563;
-      color: #fff;
-      transform: translateY(-1px);
+    .user-menu-toggle:hover { background: #1d4ed8; }
+
+    .user-dropdown {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      z-index: 10000;
+      display: none;
+      width: 230px;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #dbe3ef;
+      border-radius: 12px;
+      box-shadow: 0 12px 35px rgba(15, 23, 42, .18);
     }
 
-    .subscription-nav-info {
-      display: inline-flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 2px;
-      max-width: 210px;
-      font-size: 11px;
-      line-height: 1.4;
+    .user-dropdown.open { display: block; }
+
+    .user-dropdown-name {
+      padding: 11px 12px;
+      color: #172554;
+      font-size: 14px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 6px;
+    }
+
+    .user-dropdown a {
+      display: block;
+      padding: 11px 12px;
+      color: #26344d;
+      font-size: 13px;
+      font-weight: 650;
+      text-decoration: none;
+      border-radius: 7px;
+    }
+
+    .user-dropdown a:hover {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .user-dropdown .dropdown-logout {
       color: #dc2626;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 5px;
     }
 
-    .subscription-nav-info.expired { color: #dc2626; }
+    /* Prominent centered expiry message */
+    .subscription-expiry-banner {
+      display: none;
+      width: min(760px, calc(100% - 32px));
+      margin: 24px auto 30px;
+      padding: 19px 24px;
+      border: 1px solid #fca5a5;
+      border-radius: 12px;
+      background: #fff1f2;
+      color: #991b1b;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.5;
+      box-shadow: 0 5px 18px rgba(153, 27, 27, .08);
+    }
+
+    .subscription-expiry-banner.visible { display: block; }
+
+    .subscription-expiry-banner.active {
+      border-color: #86efac;
+      background: #f0fdf4;
+      color: #166534;
+    }
+
+    .subscription-expiry-banner.available {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      color: #1e40af;
+    }
 
     .subscription-modal {
       position: fixed;
@@ -348,7 +415,12 @@
         box-sizing: border-box;
       }
 
-      .subscription-nav-info { display: none; }
+      .user-dropdown { right: 0; }
+
+      .subscription-expiry-banner {
+        font-size: 15px;
+        padding: 16px;
+      }
     }
   </style>
 </head>
@@ -367,60 +439,56 @@
         <a class="nav-link" href="/admin">Admin</a>
         {% endif %}
 
-        {% if not session.get('is_admin') %}
-        <a
-          class="nav-link"
-          href="/new-account"
-          target="_blank"
-          rel="noopener"
-        >
-          Add account
-        </a>
-
-        <a class="contribute-btn" href="/contribute">
-          Contribute
-        </a>
-        {% endif %}
-
         {% if session.get('user') or session.get('username') %}
 
-        {% if not session.get('is_admin') %}
-        <a class="suggest-lab-btn" href="/suggest-lab">
-          Suggest a Lab
-        </a>
+          {% if not session.get('is_admin') %}
+          <div class="user-menu">
+            <button
+              type="button"
+              class="user-menu-toggle"
+              id="userMenuToggle"
+              aria-label="Open user menu"
+              aria-expanded="false"
+              title="User menu"
+            >
+              {{ (session.get('username') or session.get('user') or 'U')[0]|upper }}
+            </button>
 
-        {% if session.get('user_id') %}
-        <button
-          type="button"
-          class="subscription-nav-btn"
-          id="navSubscriptionButton"
-        >
-          Subscription
-        </button>
+            <div class="user-dropdown" id="userDropdown">
+              <div class="user-dropdown-name">
+                {{ session.get('username') or session.get('user') }}
+              </div>
 
-        <span
-          class="subscription-nav-info"
-          id="navSubscriptionInfo"
-          aria-live="polite"
-        ></span>
-        {% endif %}
-        {% endif %}
+              <a href="/suggest-lab">Suggest a Lab</a>
+              <a href="/contribute">Contribute</a>
 
-        <span class="user-welcome">
-          Welcome,
-          <strong>{{ session.get('username') or session.get('user') }}</strong>
-        </span>
+              {% if session.get('user_id') %}
+              <a href="#" id="dropdownSubscriptionButton">Subscription</a>
+              {% endif %}
 
-        <a class="logout-btn" href="/logout">Logout</a>
+              <a class="dropdown-logout" href="/logout">Logout</a>
+            </div>
+          </div>
+          {% else %}
+          <span class="user-welcome">
+            Welcome,
+            <strong>{{ session.get('username') or session.get('user') }}</strong>
+          </span>
+          <a class="logout-btn" href="/logout">Logout</a>
+          {% endif %}
 
         {% else %}
-
         <a class="login-btn" href="/login">Login</a>
-
         {% endif %}
 
       </div>
     </nav>
+
+    <div
+      class="subscription-expiry-banner"
+      id="subscriptionExpiryBanner"
+      aria-live="polite"
+    ></div>
 
     <div class="contribution-banner">
       <p>
@@ -570,7 +638,7 @@
 
             <p>{{ lab.description }}</p>
 
-            {% if session.get('user_id') %}
+            {% if session.get('user_id') and not session.get('is_admin') %}
 
             <div
               class="lab-access-message"
@@ -867,11 +935,14 @@
         .addEventListener("click", closeModal);
 
 
-      const navSubscriptionButton =
-        document.getElementById("navSubscriptionButton");
+      const dropdownSubscriptionButton =
+        document.getElementById("dropdownSubscriptionButton");
 
-      if (navSubscriptionButton) {
-        navSubscriptionButton.addEventListener("click", () => {
+      if (dropdownSubscriptionButton) {
+        dropdownSubscriptionButton.addEventListener("click", event => {
+          event.preventDefault();
+          document.getElementById("userDropdown").classList.remove("open");
+          document.getElementById("userMenuToggle").setAttribute("aria-expanded", "false");
           openModal("all");
         });
       }
@@ -921,7 +992,8 @@
           throw new Error("Subscription status is missing lab information.");
         }
 
-        const navInfo = document.getElementById("navSubscriptionInfo");
+        const expiryBanner =
+          document.getElementById("subscriptionExpiryBanner");
 
         const labEntries = Object.values(data.labs);
         const paidAccess = labEntries.find(
@@ -932,33 +1004,32 @@
           access => access.has_access && access.access_type === "trial"
         );
 
-        if (navInfo) {
-          navInfo.classList.remove("expired");
+        if (expiryBanner) {
+          expiryBanner.className = "subscription-expiry-banner visible";
 
-          if (paidAccess) {
-            navInfo.textContent = "Paid subscription active";
+          if (paidAccess || trialAccess) {
+            const activeAccess = paidAccess || trialAccess;
+            const accessType = paidAccess ? "Subscription" : "Free trial";
 
-            if (paidAccess.expires_at) {
-              navInfo.textContent +=
-                " · Expires " +
-                new Date(paidAccess.expires_at).toLocaleDateString();
+            if (activeAccess.expires_at) {
+              expiryBanner.textContent =
+                accessType + " active · Expires " +
+                new Date(activeAccess.expires_at).toLocaleString();
+            } else {
+              expiryBanner.textContent = accessType + " active";
             }
 
-          } else if (trialAccess) {
-            navInfo.textContent = "Free trial active";
-
-            if (trialAccess.expires_at) {
-              navInfo.textContent +=
-                " · Expires " +
-                new Date(trialAccess.expires_at).toLocaleDateString();
-            }
+            expiryBanner.classList.add("active");
 
           } else if (data.trial_used) {
-            navInfo.textContent = "No active subscription";
-            navInfo.classList.add("expired");
+            expiryBanner.textContent =
+              "Your free trial has expired. Choose a subscription to continue practising.";
 
           } else {
-            navInfo.textContent = "Free trial available";
+            expiryBanner.textContent =
+              "Your free 24-hour trial is available. Start practising any lab.";
+
+            expiryBanner.classList.add("available");
           }
         }
 
@@ -1265,6 +1336,35 @@
   </script>
 
   {% endif %}
+
+  <script>
+    (() => {
+      const toggle = document.getElementById("userMenuToggle");
+      const dropdown = document.getElementById("userDropdown");
+
+      if (!toggle || !dropdown) return;
+
+      toggle.addEventListener("click", event => {
+        event.stopPropagation();
+        const isOpen = dropdown.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      document.addEventListener("click", event => {
+        if (!event.target.closest(".user-menu")) {
+          dropdown.classList.remove("open");
+          toggle.setAttribute("aria-expanded", "false");
+        }
+      });
+
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          dropdown.classList.remove("open");
+          toggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    })();
+  </script>
 
 </body>
 </html>

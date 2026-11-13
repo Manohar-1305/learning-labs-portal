@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> Devops Learning Labs</title>
+  <title>Devops Learning Labs</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
@@ -83,6 +83,98 @@
     .subscription-plans-tab:hover {
       background: #d97706;
       color: #000;
+    }
+
+    /* Navigation status */
+    .running-labs-nav {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 7px;
+      padding: 0;
+    }
+
+    .running-labs-label {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .running-lab-tab {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 11px;
+      border: 1px solid #a7f3d0;
+      border-radius: 20px;
+      background: #ecfdf5;
+      color: #065f46;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .running-lab-tab.visible {
+      display: inline-flex;
+    }
+
+    .running-lab-tab.starting {
+      background: #fffbeb;
+      border-color: #fcd34d;
+      color: #92400e;
+    }
+
+    .running-lab-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      flex-shrink: 0;
+    }
+
+    .running-lab-tab.starting .running-lab-dot {
+      background: #f59e0b;
+      animation: runningLabPulse 1.2s infinite;
+    }
+
+    .running-lab-expiry,
+    .plan-expiry-time {
+      color: #dc2626 !important;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      margin-left: 2px;
+    }
+
+    .plan-expiry {
+      display: none;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 7px 10px;
+      border: 1px solid #fecaca;
+      border-radius: 20px;
+      background: #fef2f2;
+      color: #991b1b;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .plan-expiry.visible {
+      display: inline-flex;
+    }
+
+    .active-plan-name {
+      color: #0f766e;
+      font-weight: 800;
+    }
+
+    @keyframes runningLabPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
     }
 
     .subscription-expiry-banner {
@@ -330,6 +422,11 @@
         top: -12px;
         right: -8px;
       }
+
+      .running-labs-nav {
+        width: 100%;
+        order: 3;
+      }
     }
   </style>
 </head>
@@ -352,6 +449,23 @@
 
         {% if session.get('user') or session.get('username') %}
         {% set username = session.get('username') or session.get('user') %}
+
+        <div class="plan-expiry" id="planExpiry">
+          <span>Plan:</span>
+          <span class="active-plan-name" id="activePlanName">Loading...</span>
+          <span>| Plan expiry:</span>
+          <span class="plan-expiry-time" id="planExpiryTime"></span>
+        </div>
+
+        <div class="running-labs-nav" id="runningLabsNav">
+          <span class="running-labs-label">Running Labs:</span>
+
+          <a class="running-lab-tab" id="runningLabLink" href="#">
+            <span class="running-lab-dot"></span>
+            <span id="runningLabName"></span>
+            <span class="running-lab-expiry" id="runningLabExpiry"></span>
+          </a>
+        </div>
 
         <button
           class="subscription-plans-tab"
@@ -546,7 +660,6 @@
 
   {% if session.get('user') or session.get('username') %}
 
-  <!-- Banner shown once per login session -->
   <div
     class="home-banner-modal"
     id="homeBannerModal"
@@ -645,6 +758,318 @@
   <script>
     let subscriptionStatus = null;
     let paymentInProgress = false;
+    let planExpiryTimestamp = null;
+    let labExpiryTimestamp = null;
+    let activeLabSlug = null;
+
+    const runningLabEndpoints = {
+      ansible: "/api/ansible/status",
+      jenkins: "/api/jenkins/status",
+      bash: "/api/bash/status",
+      linux: "/api/linux/status"
+    };
+
+    const runningLabNames = {
+      ansible: "Ansible",
+      jenkins: "Jenkins",
+      bash: "Bash",
+      linux: "Linux"
+    };
+
+    function getTimestamp(value) {
+      if (!value) return null;
+
+      const timestamp = new Date(value).getTime();
+
+      return Number.isFinite(timestamp) ? timestamp : null;
+    }
+
+    function formatRemainingTime(expiryTimestamp) {
+      if (!expiryTimestamp) return "";
+
+      const remainingSeconds = Math.max(
+        0,
+        Math.floor((expiryTimestamp - Date.now()) / 1000)
+      );
+
+      if (remainingSeconds <= 0) return "Expired";
+
+      const days = Math.floor(remainingSeconds / 86400);
+      const hours = Math.floor((remainingSeconds % 86400) / 3600);
+      const minutes = Math.floor((remainingSeconds % 3600) / 60);
+
+      if (days > 0) return `${days}d ${hours}h left`;
+      if (hours > 0) return `${hours}h ${minutes}m left`;
+
+      return `${minutes}m left`;
+    }
+
+    function getLabExpiryTimestamp(status) {
+      const expiryFields = [
+        status.lab_expires_at,
+        status.expires_at,
+        status.expiry_at,
+        status.expires_on
+      ];
+
+      for (const value of expiryFields) {
+        const timestamp = getTimestamp(value);
+        if (timestamp) return timestamp;
+      }
+
+      return null;
+    }
+
+    function getPlanName(data) {
+      if (data.trial_active === true) {
+        return "Free";
+      }
+
+      const directPlanFields = [
+        data.plan_name,
+        data.selected_plan,
+        data.current_plan,
+        data.active_plan,
+        data.subscription_plan,
+        data.plan
+      ];
+
+      for (const value of directPlanFields) {
+        if (typeof value === "string" && value.trim()) {
+          return value.trim();
+        }
+
+        if (value && typeof value === "object") {
+          const nestedName =
+            value.name ||
+            value.plan_name ||
+            value.display_name ||
+            value.title;
+
+          if (typeof nestedName === "string" && nestedName.trim()) {
+            return nestedName.trim();
+          }
+        }
+      }
+
+      const subscriptionObjects = [
+        data.subscription,
+        data.active_subscription,
+        data.current_subscription
+      ];
+
+      for (const subscription of subscriptionObjects) {
+        if (!subscription || typeof subscription !== "object") continue;
+
+        const name =
+          subscription.plan_name ||
+          subscription.name ||
+          subscription.display_name ||
+          subscription.title ||
+          subscription.plan;
+
+        if (typeof name === "string" && name.trim()) {
+          return name.trim();
+        }
+
+        if (name && typeof name === "object") {
+          const nestedName =
+            name.name ||
+            name.plan_name ||
+            name.display_name ||
+            name.title;
+
+          if (typeof nestedName === "string" && nestedName.trim()) {
+            return nestedName.trim();
+          }
+        }
+      }
+
+      const labs = data.labs || {};
+      const activeLabPlans = Object.values(labs)
+        .filter(lab =>
+          lab &&
+          lab.has_access === true &&
+          lab.access_type === "subscription"
+        )
+        .map(lab =>
+          lab.plan_name ||
+          lab.subscription_plan ||
+          lab.plan ||
+          lab.name
+        )
+        .filter(value => typeof value === "string" && value.trim());
+
+      const uniquePlans = [...new Set(activeLabPlans)];
+
+      if (uniquePlans.length === 1) {
+        return uniquePlans[0].trim();
+      }
+
+      if (uniquePlans.length > 1) {
+        return "Multiple active plans";
+      }
+
+      if (data.trial_used === true && data.trial_active !== true) {
+        return "Free trial expired";
+      }
+
+      const hasPaidAccess = Object.values(labs).some(
+        lab =>
+          lab &&
+          lab.has_access === true &&
+          lab.access_type === "subscription"
+      );
+
+      if (hasPaidAccess) {
+        return "Active paid plan";
+      }
+
+      return "No active plan";
+    }
+
+    function updateRunningLabDisplay(slug, status) {
+      const link = document.getElementById("runningLabLink");
+      const name = document.getElementById("runningLabName");
+      const expiry = document.getElementById("runningLabExpiry");
+
+      if (!link || !name || !expiry) return;
+
+      link.classList.remove("visible", "starting");
+
+      if (!status || status.success !== true) return;
+
+      if (status.running === true) {
+        activeLabSlug = slug;
+        labExpiryTimestamp = getLabExpiryTimestamp(status);
+
+        name.textContent = runningLabNames[slug];
+        link.href = `/${slug}`;
+        link.title = `${runningLabNames[slug]} lab is running`;
+        link.classList.add("visible");
+
+        updateNavigationCountdowns();
+        return;
+      }
+
+      if (status.creating === true || status.setting_up === true) {
+        activeLabSlug = slug;
+        labExpiryTimestamp = null;
+
+        name.textContent = runningLabNames[slug];
+        expiry.textContent = "";
+        link.href = `/${slug}`;
+        link.classList.add("visible", "starting");
+        link.title = `${runningLabNames[slug]} lab is starting`;
+      }
+    }
+
+    async function loadRunningLabs() {
+      const results = await Promise.all(
+        Object.entries(runningLabEndpoints).map(
+          async ([slug, endpoint]) => {
+            try {
+              const response = await fetch(endpoint, {
+                credentials: "same-origin",
+                cache: "no-store"
+              });
+
+              if (!response.ok) return [slug, null];
+
+              return [slug, await response.json()];
+            } catch (error) {
+              return [slug, null];
+            }
+          }
+        )
+      );
+
+      const runningLab = results.find(
+        ([, status]) => status &&
+          status.success === true &&
+          status.running === true
+      );
+
+      const startingLab = results.find(
+        ([, status]) => status &&
+          status.success === true &&
+          (status.creating === true || status.setting_up === true)
+      );
+
+      if (runningLab) {
+        updateRunningLabDisplay(runningLab[0], runningLab[1]);
+        return;
+      }
+
+      if (startingLab) {
+        updateRunningLabDisplay(startingLab[0], startingLab[1]);
+        return;
+      }
+
+      const link = document.getElementById("runningLabLink");
+
+      if (link) {
+        link.classList.remove("visible", "starting");
+      }
+
+      activeLabSlug = null;
+      labExpiryTimestamp = null;
+
+      const expiry = document.getElementById("runningLabExpiry");
+      if (expiry) expiry.textContent = "";
+    }
+
+    function updateNavigationCountdowns() {
+      const planElement = document.getElementById("planExpiry");
+      const planTimeElement = document.getElementById("planExpiryTime");
+      const labTimeElement = document.getElementById("runningLabExpiry");
+
+      if (planElement && planTimeElement) {
+        if (planExpiryTimestamp) {
+          planElement.classList.add("visible");
+          planTimeElement.textContent =
+            formatRemainingTime(planExpiryTimestamp);
+        } else {
+          planElement.classList.remove("visible");
+          planTimeElement.textContent = "";
+        }
+      }
+
+      if (labTimeElement) {
+        labTimeElement.textContent = labExpiryTimestamp
+          ? formatRemainingTime(labExpiryTimestamp)
+          : "";
+      }
+    }
+
+    function updatePlanExpiry(data) {
+      if (data.trial_active === true && data.trial_expires_at) {
+        planExpiryTimestamp = getTimestamp(data.trial_expires_at);
+      } else {
+        const labs = data.labs || {};
+
+        const expiries = Object.values(labs)
+          .filter(lab =>
+            lab.has_access === true &&
+            lab.access_type === "subscription" &&
+            lab.expires_at
+          )
+          .map(lab => getTimestamp(lab.expires_at))
+          .filter(Boolean);
+
+        planExpiryTimestamp = expiries.length
+          ? Math.max(...expiries)
+          : null;
+      }
+
+      const planNameElement = document.getElementById("activePlanName");
+
+      if (planNameElement) {
+        planNameElement.textContent = getPlanName(data);
+      }
+
+      updateNavigationCountdowns();
+    }
 
     function openHomeBanner() {
       const banner = document.getElementById("homeBannerModal");
@@ -822,13 +1247,16 @@
 
       try {
         const response = await fetch("/subscriptions/status", {
-          credentials: "same-origin"
+          credentials: "same-origin",
+          cache: "no-store"
         });
 
         if (!response.ok) return;
 
         const data = await response.json();
         subscriptionStatus = data;
+
+        updatePlanExpiry(data);
 
         const trialActive = data.trial_active === true;
         const trialExpiry = data.trial_expires_at;
@@ -881,7 +1309,8 @@
 
             if (uniqueExpiries.length === 1) {
               banner.textContent =
-                "Your paid Learning Labs plan is active and expires on " +
+                "Your " + getPlanName(data) +
+                " plan for Learning Labs is active and expires on " +
                 formatExpiry(uniqueExpiries[0]) + ".";
             } else {
               banner.textContent =
@@ -892,7 +1321,8 @@
             }
           } else {
             banner.textContent =
-              "Your paid Learning Labs subscription is active.";
+              "Your " + getPlanName(data) +
+              " subscription is active.";
           }
 
           return;
@@ -935,23 +1365,31 @@
         }
       });
 
-  document.addEventListener("DOMContentLoaded", async () => {
-  const params = new URLSearchParams(window.location.search);
+    document.addEventListener("DOMContentLoaded", async () => {
+      await Promise.all([
+        loadRunningLabs(),
+        loadSubscriptionStatus()
+      ]);
 
-  if (params.get("subscription") === "required") {
-    sessionStorage.setItem("learningLabsBannerShown", "true");
-    closeHomeBanner();
+      setInterval(loadRunningLabs, 15000);
+      setInterval(loadSubscriptionStatus, 60000);
+      setInterval(updateNavigationCountdowns, 1000);
 
-    await loadSubscriptionStatus();
-    openSubscriptionPlans();
+      const params = new URLSearchParams(window.location.search);
 
-    window.history.replaceState({}, document.title, window.location.pathname);
-    return;
-  }
+      if (params.get("subscription") === "required") {
+        sessionStorage.setItem("learningLabsBannerShown", "true");
+        closeHomeBanner();
 
-  openHomeBanner();
-  loadSubscriptionStatus();
-});
+        await loadSubscriptionStatus();
+        openSubscriptionPlans();
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+
+      openHomeBanner();
+    });
   </script>
   {% endif %}
 </body>

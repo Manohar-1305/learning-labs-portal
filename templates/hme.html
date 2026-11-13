@@ -1,425 +1,333 @@
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Learning Labs</title>
+  <title> Devops Learning Labs</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
-
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
   <style>
-    .learning-banner-overlay {
+    .user-menu {
+      position: relative;
+      display: inline-block;
+    }
+
+    .user-menu summary {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #0f766e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+
+    .user-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: 52px;
+      right: 0;
+      min-width: 190px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      padding: 8px;
+      z-index: 1000;
+    }
+
+    .user-dropdown .dropdown-username {
+      display: block;
+      padding: 10px 12px;
+      font-weight: 700;
+      color: #1e293b;
+      overflow-wrap: anywhere;
+    }
+
+    .user-dropdown a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #334155;
+      text-decoration: none;
+    }
+
+    .user-dropdown a:hover {
+      background: #f1f5f9;
+    }
+
+    .subscription-plans-tab {
+      border: 0;
+      border-radius: 7px;
+      padding: 11px 16px;
+      background: #f59e0b;
+      color: #000;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .subscription-plans-tab:hover {
+      background: #d97706;
+      color: #000;
+    }
+
+    .subscription-expiry-banner {
+      display: none;
+      margin: 16px 0;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .subscription-expiry-banner.active {
+      display: block;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+    }
+
+    .subscription-expiry-banner.warning {
+      display: block;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      color: #92400e;
+    }
+
+    .subscription-expiry-banner.expired {
+      display: block;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+
+    .subscription-modal {
+      display: none;
       position: fixed;
       inset: 0;
-      z-index: 999999;
+      z-index: 2000;
+      background: rgba(15, 23, 42, 0.55);
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .subscription-modal.open {
+      display: flex;
+    }
+
+    .subscription-modal-content {
+      position: relative;
+      width: 100%;
+      max-width: 460px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 14px;
+      padding: 26px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    }
+
+    .subscription-modal-content h2 {
+      margin: 0 0 8px;
+      color: #172554;
+    }
+
+    .subscription-modal-content > p {
+      margin: 0 0 20px;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      font-size: 25px;
+      cursor: pointer;
+    }
+
+    .mobile-number-field {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+
+    .mobile-number-field label {
+      display: block;
+      margin-bottom: 7px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .mobile-number-field input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .mobile-number-field input:focus {
+      border-color: #0f766e;
+    }
+
+    .trial-option {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+      border: 1px solid #0f766e;
+      border-radius: 9px;
+      background: #ecfdf5;
+      color: #065f46;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .trial-option strong,
+    .trial-option span {
+      display: block;
+    }
+
+    .trial-option span {
+      margin-top: 4px;
+      font-size: 12px;
+    }
+
+    .trial-option:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .plan-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .plan-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 13px 15px;
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      background: #fff;
+      color: #1e293b;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .plan-option:hover {
+      border-color: #0f766e;
+      background: #f8fafc;
+    }
+
+    .plan-option strong {
+      color: #0f766e;
+      font-size: 16px;
+    }
+
+    .plan-option:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .subscription-message {
+      min-height: 20px;
+      margin-top: 14px;
+      color: #b91c1c;
+      font-size: 13px;
+    }
+
+    /* Home banner popup */
+    .home-banner-modal {
       display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      background: rgba(15, 23, 42, 0.75);
       align-items: center;
       justify-content: center;
       padding: 20px;
-      background: rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(6px);
-      animation: bannerFadeIn 0.3s ease;
     }
 
-    .learning-banner-overlay.visible { display: flex; }
+    .home-banner-modal.open {
+      display: flex;
+    }
 
-    .learning-banner-container {
+    .home-banner-content {
       position: relative;
       width: 100%;
-      max-width: 1100px;
+      max-width: 850px;
       max-height: 90vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: bannerZoomIn 0.3s ease;
     }
 
-    .learning-banner-container img {
+    .home-banner-content img {
       display: block;
       max-width: 100%;
       max-height: 85vh;
       width: auto;
       height: auto;
       object-fit: contain;
-      border-radius: 14px;
-      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+      border-radius: 12px;
     }
 
-    .learning-banner-close {
+    .home-banner-close {
       position: absolute;
-      top: -16px;
-      right: -16px;
-      z-index: 2;
-      width: 42px;
-      height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #fff;
+      top: -14px;
+      right: -14px;
+      width: 36px;
+      height: 36px;
+      border: 0;
       border-radius: 50%;
-      background: #111827;
-      color: #fff;
-      font-size: 28px;
+      background: #fff;
+      color: #1e293b;
+      font-size: 25px;
       line-height: 1;
       cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
     }
-
-    .learning-banner-close:hover {
-      background: #dc2626;
-      transform: scale(1.08);
-    }
-
-    @keyframes bannerFadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes bannerZoomIn {
-      from { opacity: 0; transform: scale(0.92); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .lab-card { display: flex; flex-direction: column; }
-    .lab-card-content { flex: 1; }
-
-    .lab-card-actions {
-      display: flex;
-      flex-direction: row;
-      gap: 10px;
-      margin-top: 20px;
-      width: 100%;
-    }
-
-    .lab-action-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      min-width: 0;
-      min-height: 42px;
-      padding: 10px 12px;
-      border: 0;
-      border-radius: 8px;
-      background: #2563eb;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      text-align: center;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .lab-action-btn:hover {
-      background: #1d4ed8;
-      transform: translateY(-1px);
-    }
-
-    .lab-action-btn.secondary {
-      background: #fff;
-      color: #2563eb;
-      border: 1px solid #2563eb;
-    }
-
-    .lab-action-btn.secondary:hover { background: #eff6ff; }
-
-    .lab-action-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .lab-action-btn.expired {
-      background: #9ca3af;
-      color: #fff;
-      cursor: not-allowed;
-      border-color: #9ca3af;
-    }
-
-    .lab-access-message {
-      display: none;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #b45309;
-      margin-top: 12px;
-    }
-
-    .lab-access-message.visible { display: block; }
-    .lab-access-message.expired { color: #dc2626; }
-
-    .subscription-status {
-      font-size: 12px;
-      font-weight: 700;
-      margin-top: 8px;
-      color: #15803d;
-      line-height: 1.5;
-    }
-
-    /* User profile dropdown */
-    .user-menu {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-    }
-
-    .user-menu-toggle {
-      width: 42px;
-      height: 42px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 0;
-      border-radius: 50%;
-      background: #2563eb;
-      color: #fff;
-      font-size: 17px;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 3px 12px rgba(37, 99, 235, .25);
-    }
-
-    .user-menu-toggle:hover { background: #1d4ed8; }
-
-    .user-dropdown {
-      position: absolute;
-      top: calc(100% + 12px);
-      right: 0;
-      z-index: 10000;
-      display: none;
-      width: 230px;
-      padding: 10px;
-      background: #fff;
-      border: 1px solid #dbe3ef;
-      border-radius: 12px;
-      box-shadow: 0 12px 35px rgba(15, 23, 42, .18);
-    }
-
-    .user-dropdown.open { display: block; }
-
-    .user-dropdown-name {
-      padding: 11px 12px;
-      color: #172554;
-      font-size: 14px;
-      font-weight: 800;
-      overflow-wrap: anywhere;
-      border-bottom: 1px solid #e5e7eb;
-      margin-bottom: 6px;
-    }
-
-    .user-dropdown a {
-      display: block;
-      padding: 11px 12px;
-      color: #26344d;
-      font-size: 13px;
-      font-weight: 650;
-      text-decoration: none;
-      border-radius: 7px;
-    }
-
-    .user-dropdown a:hover {
-      background: #eff6ff;
-      color: #1d4ed8;
-    }
-
-    .user-dropdown .dropdown-logout {
-      color: #dc2626;
-      border-top: 1px solid #e5e7eb;
-      margin-top: 5px;
-    }
-
-    /* Prominent centered expiry message */
-    .subscription-expiry-banner {
-      display: none;
-      width: min(760px, calc(100% - 32px));
-      margin: 24px auto 30px;
-      padding: 19px 24px;
-      border: 1px solid #fca5a5;
-      border-radius: 12px;
-      background: #fff1f2;
-      color: #991b1b;
-      text-align: center;
-      font-size: 17px;
-      font-weight: 800;
-      line-height: 1.5;
-      box-shadow: 0 5px 18px rgba(153, 27, 27, .08);
-    }
-
-    .subscription-expiry-banner.visible { display: block; }
-
-    .subscription-expiry-banner.active {
-      border-color: #86efac;
-      background: #f0fdf4;
-      color: #166534;
-    }
-
-    .subscription-expiry-banner.available {
-      border-color: #93c5fd;
-      background: #eff6ff;
-      color: #1e40af;
-    }
-
-    .subscription-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 1000000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(5px);
-    }
-
-    .subscription-modal.visible { display: flex; }
-
-    .subscription-modal-content {
-      width: 100%;
-      max-width: 520px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 26px;
-      border-radius: 16px;
-      background: #fff;
-      color: #111827;
-      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.3);
-    }
-
-    .subscription-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 12px;
-    }
-
-    .subscription-modal-header h2 { margin: 0; font-size: 22px; }
-
-    .subscription-modal-close {
-      border: 0;
-      background: transparent;
-      color: #374151;
-      font-size: 28px;
-      cursor: pointer;
-    }
-
-    .subscription-description {
-      color: #4b5563;
-      font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
-
-    .subscription-plans { display: grid; gap: 12px; }
-
-    .subscription-plan {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 16px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: border-color 0.2s ease, background 0.2s ease;
-    }
-
-    .subscription-plan:has(input:checked) {
-      border-color: #2563eb;
-      background: #eff6ff;
-    }
-
-    .subscription-plan input {
-      accent-color: #2563eb;
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-    }
-
-    .subscription-plan strong { display: block; font-size: 15px; }
-
-    .subscription-plan small {
-      display: block;
-      margin-top: 4px;
-      color: #6b7280;
-    }
-
-    .subscription-plan-price {
-      font-size: 17px;
-      font-weight: 700;
-      color: #111827;
-      white-space: nowrap;
-    }
-
-    .subscription-phone {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      margin-top: 18px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-
-    .subscription-submit {
-      width: 100%;
-      padding: 13px;
-      margin-top: 16px;
-      border: 0;
-      border-radius: 8px;
-      background: #2563eb;
-      color: #fff;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .subscription-submit:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
-
-    .subscription-error {
-      display: none;
-      color: #dc2626;
-      font-size: 13px;
-      line-height: 1.5;
-      margin-top: 12px;
-    }
-
-    .subscription-error.visible { display: block; }
 
     @media (max-width: 600px) {
-      .learning-banner-overlay { padding: 12px; }
+      .home-banner-modal {
+        padding: 14px;
+      }
 
-      .learning-banner-container img { max-height: 80vh; }
+      .home-banner-content img {
+        max-height: 80vh;
+      }
 
-      .learning-banner-close {
+      .home-banner-close {
         top: -12px;
         right: -8px;
-        width: 36px;
-        height: 36px;
-        font-size: 24px;
-      }
-
-      .subscription-modal-content { padding: 20px; }
-
-      .lab-card-actions { flex-direction: column; }
-
-      .lab-action-btn {
-        width: 100%;
-        box-sizing: border-box;
-      }
-
-      .user-dropdown { right: 0; }
-
-      .subscription-expiry-banner {
-        font-size: 15px;
-        padding: 16px;
       }
     }
   </style>
@@ -427,83 +335,62 @@
 
 <body>
   <main class="labs-page">
-
     <nav class="home-nav">
       <a href="/" class="home-brand" aria-label="Learning Labs home">
-        <strong>Learning Labs</strong>
+        <strong>Devops Learning Labs</strong>
       </a>
 
       <div class="nav-actions">
-
         {% if session.get('is_admin') %}
         <a class="nav-link" href="/admin">Admin</a>
         {% endif %}
 
+        <a class="nav-link" href="/new-account" target="_blank" rel="noopener">
+          Add account
+        </a>
+
         {% if session.get('user') or session.get('username') %}
+        {% set username = session.get('username') or session.get('user') %}
 
-          {% if not session.get('is_admin') %}
-          <div class="user-menu">
-            <button
-              type="button"
-              class="user-menu-toggle"
-              id="userMenuToggle"
-              aria-label="Open user menu"
-              aria-expanded="false"
-              title="User menu"
-            >
-              {{ (session.get('username') or session.get('user') or 'U')[0]|upper }}
-            </button>
+        <button
+          class="subscription-plans-tab"
+          type="button"
+          onclick="openSubscriptionPlans()"
+        >
+          Subscription Plans
+        </button>
 
-            <div class="user-dropdown" id="userDropdown">
-              <div class="user-dropdown-name">
-                {{ session.get('username') or session.get('user') }}
-              </div>
+        <details class="user-menu">
+          <summary aria-label="Open user menu">
+            {{ username[0]|upper }}
+          </summary>
 
-              <a href="/suggest-lab">Suggest a Lab</a>
-              <a href="/contribute">Contribute</a>
-
-              {% if session.get('user_id') %}
-              <a href="#" id="dropdownSubscriptionButton">Subscription</a>
-              {% endif %}
-
-              <a class="dropdown-logout" href="/logout">Logout</a>
-            </div>
+          <div class="user-dropdown">
+            <span class="dropdown-username">{{ username }}</span>
+            <a href="/contribute">Contribute</a>
+            <a href="/suggest-lab">Suggest a Lab</a>
+            <a href="/logout" onclick="sessionStorage.removeItem('learningLabsBannerShown')">Logout</a>
           </div>
-          {% else %}
-          <span class="user-welcome">
-            Welcome,
-            <strong>{{ session.get('username') or session.get('user') }}</strong>
-          </span>
-          <a class="logout-btn" href="/logout">Logout</a>
-          {% endif %}
-
+        </details>
         {% else %}
+        <a class="contribute-btn" href="/contribute">Contribute</a>
         <a class="login-btn" href="/login">Login</a>
         {% endif %}
-
       </div>
     </nav>
 
+    {% if session.get('user') or session.get('username') %}
     <div
-      class="subscription-expiry-banner"
       id="subscriptionExpiryBanner"
+      class="subscription-expiry-banner"
+      role="status"
       aria-live="polite"
     ></div>
-
-    <div class="contribution-banner">
-      <p>
-        You may contribute and learn to help keep this lab up and running.
-        Your support helps us maintain and improve these learning environments
-        for everyone.
-      </p>
-    </div>
+    {% endif %}
 
     <section class="hero-section">
       <div class="hero-content">
-
-        <span class="hero-label">
-          PRACTICAL LEARNING ENVIRONMENTS
-        </span>
+        <span class="hero-label">PRACTICAL LEARNING ENVIRONMENTS</span>
 
         <h1>
           Learn by doing.<br />
@@ -511,9 +398,10 @@
         </h1>
 
         <p>
-          Explore Ansible, Jenkins and Bash through hands-on labs. Work with
-          real commands, practise automation and build confidence using the
-          tools you'll encounter in real technical environments.
+          Explore Ansible, Jenkins and Bash through hands-on labs.
+          Work with real commands, practise automation and build
+          confidence using the tools you'll encounter in real
+          technical environments.
         </p>
 
         <div class="hero-tags">
@@ -522,69 +410,42 @@
           <span>DevOps</span>
           <span>Hands-on practice</span>
         </div>
-
       </div>
 
       <div class="hero-visual">
         <div class="terminal-card">
-
           <div class="terminal-top">
             <div class="terminal-dots">
               <i></i>
               <i></i>
               <i></i>
             </div>
-
             <span>learning-labs — terminal</span>
           </div>
 
           <div class="terminal-body">
-
-            <p>
-              <span class="terminal-prompt">$</span>
-              ansible --version
-            </p>
-
-            <p class="terminal-result">
-              ansible [core 2.16.3]
-            </p>
+            <p><span class="terminal-prompt">$</span> ansible --version</p>
+            <p class="terminal-result">ansible [core 2.16.3]</p>
 
             <br />
 
-            <p>
-              <span class="terminal-prompt">$</span>
-              systemctl status jenkins
-            </p>
-
-            <p class="terminal-success">
-              Active: active (running)
-            </p>
+            <p><span class="terminal-prompt">$</span> systemctl status jenkins</p>
+            <p class="terminal-success">Active: active (running)</p>
 
             <br />
 
-            <p>
-              <span class="terminal-prompt">$</span>
-              bash deploy.sh
-            </p>
-
-            <p class="terminal-success">
-              Deployment completed successfully.
-            </p>
+            <p><span class="terminal-prompt">$</span> bash deploy.sh</p>
+            <p class="terminal-success">Deployment completed successfully.</p>
 
             <br />
 
-            <p>
-              <span class="terminal-prompt">$</span>
-              <span class="terminal-cursor">_</span>
-            </p>
-
+            <p><span class="terminal-prompt">$</span> <span class="terminal-cursor">_</span></p>
           </div>
         </div>
       </div>
     </section>
 
     <section class="labs-section">
-
       <div class="section-heading">
         <span class="section-label">CHOOSE YOUR ENVIRONMENT</span>
         <h2>Explore the labs</h2>
@@ -592,36 +453,40 @@
       </div>
 
       <section class="labs-grid">
-
         {% for slug, lab in labs.items() %}
-
-        <article
+        <a
           class="lab-card {% if slug == 'ansible' %}lab-ansible{% elif slug == 'jenkins' %}lab-jenkins{% else %}lab-bash{% endif %}"
-          data-lab="{{ slug }}"
+          href="/{{ slug }}"
         >
-
           <div class="lab-card-top">
-
             <div class="lab-icon" aria-hidden="true">
               {% if slug == "ansible" %}
                 A
               {% elif slug == "jenkins" %}
                 J
-              {% elif slug == "linux" %}
-                L
               {% else %}
                 B
+              {% endif %}
+            </div>
+
+            <div class="lab-image">
+              {% if slug == "ansible" %}
+                <img src="{{ url_for('static', filename='images/ansible.png') }}" alt="Ansible" />
+              {% elif slug == "jenkins" %}
+                <img src="{{ url_for('static', filename='images/jenkins.png') }}" alt="Jenkins" />
+              {% elif slug == "bash" %}
+                <img src="{{ url_for('static', filename='images/bash.png') }}" alt="Bash" />
+              {% else %}
+                <img src="{{ url_for('static', filename='images/linux.png') }}" alt="Linux" />
               {% endif %}
             </div>
 
             <span class="lab-number">
               {% if loop.index < 10 %}0{% endif %}{{ loop.index }}
             </span>
-
           </div>
 
           <div class="lab-card-content">
-
             <h3>
               {% if slug == "ansible" %}
                 Ansible Lab
@@ -629,80 +494,20 @@
                 Jenkins Lab
               {% elif slug == "bash" %}
                 Bash Lab
-              {% elif slug == "linux" %}
-                Linux Lab
               {% else %}
                 {{ lab.title }}
               {% endif %}
             </h3>
 
             <p>{{ lab.description }}</p>
-
-            {% if session.get('user_id') and not session.get('is_admin') %}
-
-            <div
-              class="lab-access-message"
-              id="message-{{ slug }}"
-              aria-live="polite"
-            ></div>
-
-            <div
-              class="subscription-status"
-              id="status-{{ slug }}"
-            ></div>
-
-            {% endif %}
-
           </div>
 
           <div class="lab-card-footer">
-
-            {% if session.get('user_id') %}
-
-            <div class="lab-card-actions">
-
-              <button
-                type="button"
-                class="lab-action-btn practice-button"
-                id="practice-{{ slug }}"
-                data-lab="{{ slug }}"
-              >
-                Practise freely for 1 day
-              </button>
-
-              <button
-                type="button"
-                class="lab-action-btn secondary enroll-button"
-                id="enroll-{{ slug }}"
-                data-lab="{{ slug }}"
-              >
-                Enroll
-              </button>
-
-            </div>
-
-            {% else %}
-
-            <div class="lab-card-actions">
-
-              <a href="/login" class="lab-action-btn">
-                Practise freely for 1 day
-              </a>
-
-              <a href="/login" class="lab-action-btn secondary">
-                Enroll
-              </a>
-
-            </div>
-
-            {% endif %}
-
+            <span>Start practising</span>
+            <span class="lab-arrow" aria-hidden="true">→</span>
           </div>
-
-        </article>
-
+        </a>
         {% endfor %}
-
       </section>
     </section>
 
@@ -710,127 +515,23 @@
       <span>Learning Labs</span>
       <span>Learn · Practice · Improve</span>
     </footer>
-
   </main>
 
-  {% if session.get('user_id') and not session.get('is_admin') %}
+  {% if session.get('user') or session.get('username') %}
 
+  <!-- Banner shown once per login session -->
   <div
-    class="subscription-modal"
-    id="subscriptionModal"
+    class="home-banner-modal"
+    id="homeBannerModal"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="subscriptionTitle"
+    aria-label="Learning Labs announcement"
   >
-
-    <div class="subscription-modal-content">
-
-      <div class="subscription-modal-header">
-
-        <h2 id="subscriptionTitle">Learning Labs Subscription</h2>
-
-        <button
-          type="button"
-          class="subscription-modal-close"
-          id="closeSubscriptionModal"
-          aria-label="Close"
-        >
-          &times;
-        </button>
-
-      </div>
-
-      <p class="subscription-description" id="subscriptionDescription">
-        Choose a subscription plan to access Linux, Jenkins, Bash and Ansible.
-        Your selected plan will apply to all four labs.
-      </p>
-
-      <div class="subscription-plans">
-
-        <label class="subscription-plan">
-          <span>
-            <strong>1 Day</strong>
-            <small>Access to all four labs for 1 day</small>
-          </span>
-          <span class="subscription-plan-price">₹10</span>
-          <input type="radio" name="plan_days" value="1" checked />
-        </label>
-
-        <label class="subscription-plan">
-          <span>
-            <strong>3 Days</strong>
-            <small>Access to all four labs for 3 days</small>
-          </span>
-          <span class="subscription-plan-price">₹25</span>
-          <input type="radio" name="plan_days" value="3" />
-        </label>
-
-        <label class="subscription-plan">
-          <span>
-            <strong>7 Days</strong>
-            <small>Access to all four labs for 7 days</small>
-          </span>
-          <span class="subscription-plan-price">₹65</span>
-          <input type="radio" name="plan_days" value="7" />
-        </label>
-
-        <label class="subscription-plan">
-          <span>
-            <strong>15 Days</strong>
-            <small>Access to all four labs for 15 days</small>
-          </span>
-          <span class="subscription-plan-price">₹125</span>
-          <input type="radio" name="plan_days" value="15" />
-        </label>
-
-        <label class="subscription-plan">
-          <span>
-            <strong>30 Days</strong>
-            <small>Access to all four labs for 30 days</small>
-          </span>
-          <span class="subscription-plan-price">₹250</span>
-          <input type="radio" name="plan_days" value="30" />
-        </label>
-
-      </div>
-
-      <input
-        type="tel"
-        class="subscription-phone"
-        id="customerPhone"
-        placeholder="Enter 10-digit mobile number"
-        maxlength="10"
-        autocomplete="tel"
-      />
-
+    <div class="home-banner-content">
       <button
+        class="home-banner-close"
         type="button"
-        class="subscription-submit"
-        id="subscriptionSubmit"
-      >
-        Continue to payment
-      </button>
-
-      <div
-        class="subscription-error"
-        id="subscriptionError"
-        role="alert"
-      ></div>
-
-    </div>
-  </div>
-
-  <div
-    class="learning-banner-overlay"
-    id="learningBannerOverlay"
-  >
-
-    <div class="learning-banner-container">
-
-      <button
-        type="button"
-        class="learning-banner-close"
-        id="learningBannerClose"
+        onclick="closeHomeBanner()"
         aria-label="Close banner"
       >
         &times;
@@ -838,533 +539,393 @@
 
       <img
         src="{{ url_for('static', filename='images/learning-labs-banner.png') }}"
-        alt="Learning Labs Portal"
+        alt="Learning Labs banner"
       />
+    </div>
+  </div>
 
+  <div
+    class="subscription-modal"
+    id="subscriptionModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="subscriptionModalTitle"
+  >
+    <div class="subscription-modal-content">
+      <button
+        class="modal-close"
+        type="button"
+        onclick="closeSubscriptionPlans()"
+        aria-label="Close"
+      >
+        &times;
+      </button>
+
+      <h2 id="subscriptionModalTitle">Subscription Plans</h2>
+      <p>Choose a plan for access to all Learning Labs.</p>
+
+      <div class="mobile-number-field">
+        <label for="subscriptionPhone">Indian mobile number</label>
+        <input
+          type="tel"
+          id="subscriptionPhone"
+          inputmode="numeric"
+          maxlength="10"
+          placeholder="Enter 10-digit mobile number"
+          autocomplete="tel-national"
+        />
+      </div>
+
+      <button
+        type="button"
+        class="trial-option"
+        id="freeTrialButton"
+        onclick="startFreeTrial()"
+      >
+        <span>
+          <strong>1 Day Free Trial</strong>
+          <span>Get 24-hour access to all labs</span>
+        </span>
+        <strong>FREE</strong>
+      </button>
+
+      <div class="plan-list">
+        <button class="plan-option" type="button" onclick="purchasePlan(3)">
+          <span>3 Days</span>
+          <strong>₹25</strong>
+        </button>
+
+        <button class="plan-option" type="button" onclick="purchasePlan(7)">
+          <span>7 Days</span>
+          <strong>₹65</strong>
+        </button>
+
+        <button class="plan-option" type="button" onclick="purchasePlan(15)">
+          <span>15 Days</span>
+          <strong>₹125</strong>
+        </button>
+
+        <button class="plan-option" type="button" onclick="purchasePlan(30)">
+          <span>30 Days</span>
+          <strong>₹250</strong>
+        </button>
+      </div>
+
+      <div id="subscriptionMessage" class="subscription-message"></div>
     </div>
   </div>
 
   <script>
-    (() => {
-      const STORAGE_KEY = "learningLabsBannerShown";
+    let subscriptionStatus = null;
+    let paymentInProgress = false;
 
-      const overlay = document.getElementById("learningBannerOverlay");
-      const closeButton = document.getElementById("learningBannerClose");
+    function openHomeBanner() {
+      const banner = document.getElementById("homeBannerModal");
 
-      if (!overlay || !closeButton) return;
+      if (!banner) return;
+
+      if (sessionStorage.getItem("learningLabsBannerShown") === "true") {
+        return;
+      }
+
+      sessionStorage.setItem("learningLabsBannerShown", "true");
+      banner.classList.add("open");
+    }
+
+    function closeHomeBanner() {
+      const banner = document.getElementById("homeBannerModal");
+
+      if (banner) {
+        banner.classList.remove("open");
+      }
+    }
+
+    function openSubscriptionPlans() {
+      document.getElementById("subscriptionMessage").textContent = "";
+
+      const trialButton = document.getElementById("freeTrialButton");
+
+      if (subscriptionStatus && subscriptionStatus.trial_used) {
+        trialButton.disabled = true;
+        trialButton.querySelector("span span").textContent =
+          "Your 1-day free trial has already been used";
+      } else {
+        trialButton.disabled = false;
+        trialButton.querySelector("span span").textContent =
+          "Get 24-hour access to all labs";
+      }
+
+      document.getElementById("subscriptionModal").classList.add("open");
+    }
+
+    function closeSubscriptionPlans() {
+      document.getElementById("subscriptionModal").classList.remove("open");
+    }
+
+    function showSubscriptionMessage(message) {
+      document.getElementById("subscriptionMessage").textContent = message;
+    }
+
+    function getMobileNumber() {
+      const phone = document.getElementById("subscriptionPhone").value.trim();
+
+      if (!/^[6-9][0-9]{9}$/.test(phone)) {
+        showSubscriptionMessage(
+          "A valid 10-digit Indian mobile number is required."
+        );
+        document.getElementById("subscriptionPhone").focus();
+        return null;
+      }
+
+      return phone;
+    }
+
+    async function startFreeTrial() {
+      const button = document.getElementById("freeTrialButton");
+
+      if (button.disabled) return;
+
+      button.disabled = true;
+      showSubscriptionMessage("Activating your 1-day free trial...");
 
       try {
-        if (sessionStorage.getItem(STORAGE_KEY) !== "true") {
-          overlay.classList.add("visible");
-          sessionStorage.setItem(STORAGE_KEY, "true");
-        }
-      } catch (_) {
-        overlay.classList.add("visible");
-      }
-
-      function closeBanner() {
-        overlay.classList.remove("visible");
-      }
-
-      closeButton.addEventListener("click", closeBanner);
-
-      overlay.addEventListener("click", event => {
-        if (event.target === overlay) {
-          closeBanner();
-        }
-      });
-
-      document.addEventListener("keydown", event => {
-        if (event.key === "Escape") {
-          closeBanner();
-        }
-      });
-    })();
-
-
-    (() => {
-
-      const modal = document.getElementById("subscriptionModal");
-
-      if (!modal) return;
-
-      let selectedLab = "all";
-
-      const errorBox = document.getElementById("subscriptionError");
-      const submitButton = document.getElementById("subscriptionSubmit");
-
-      const cashfreeMode =
-        "{{ 'production' if config.get('CASHFREE_ENV') == 'production' else 'sandbox' }}";
-
-
-      function showError(message) {
-        errorBox.textContent = message;
-        errorBox.classList.add("visible");
-      }
-
-
-      function clearError() {
-        errorBox.textContent = "";
-        errorBox.classList.remove("visible");
-      }
-
-
-      function openModal(lab = "all") {
-        selectedLab = lab;
-
-        clearError();
-
-        document.getElementById("subscriptionTitle").textContent =
-          "Learning Labs Subscription";
-
-        document.getElementById("subscriptionDescription").textContent =
-          "Choose a plan to access Linux, Jenkins, Bash and Ansible. Your selected plan applies to all four labs.";
-
-        modal.classList.add("visible");
-      }
-
-
-      function closeModal() {
-        modal.classList.remove("visible");
-        selectedLab = "all";
-        clearError();
-      }
-
-
-      document.getElementById("closeSubscriptionModal")
-        .addEventListener("click", closeModal);
-
-
-      const dropdownSubscriptionButton =
-        document.getElementById("dropdownSubscriptionButton");
-
-      if (dropdownSubscriptionButton) {
-        dropdownSubscriptionButton.addEventListener("click", event => {
-          event.preventDefault();
-          document.getElementById("userDropdown").classList.remove("open");
-          document.getElementById("userMenuToggle").setAttribute("aria-expanded", "false");
-          openModal("all");
-        });
-      }
-
-
-      modal.addEventListener("click", event => {
-        if (event.target === modal) {
-          closeModal();
-        }
-      });
-
-
-      async function fetchJSON(url, options = {}) {
-
-        const response = await fetch(url, {
-          credentials: "same-origin",
-          ...options
-        });
-
-        const contentType = response.headers.get("content-type") || "";
-
-        if (!contentType.includes("application/json")) {
-          throw new Error(
-            "Server returned an invalid response. Check the subscription API."
-          );
-        }
-
-        const result = await response.json();
-
-        if (!response.ok || result.success === false) {
-          throw new Error(
-            result.message ||
-            result.error ||
-            "Request failed. Please try again."
-          );
-        }
-
-        return result;
-      }
-
-
-      async function loadSubscriptionStatus() {
-
-        const data = await fetchJSON("/subscriptions/status");
-
-        if (!data.labs) {
-          throw new Error("Subscription status is missing lab information.");
-        }
-
-        const expiryBanner =
-          document.getElementById("subscriptionExpiryBanner");
-
-        const labEntries = Object.values(data.labs);
-        const paidAccess = labEntries.find(
-          access => access.has_access && access.access_type === "subscription"
-        );
-
-        const trialAccess = labEntries.find(
-          access => access.has_access && access.access_type === "trial"
-        );
-
-        if (expiryBanner) {
-          expiryBanner.className = "subscription-expiry-banner visible";
-
-          if (paidAccess || trialAccess) {
-            const activeAccess = paidAccess || trialAccess;
-            const accessType = paidAccess ? "Subscription" : "Free trial";
-
-            if (activeAccess.expires_at) {
-              expiryBanner.textContent =
-                accessType + " active · Expires " +
-                new Date(activeAccess.expires_at).toLocaleString();
-            } else {
-              expiryBanner.textContent = accessType + " active";
-            }
-
-            expiryBanner.classList.add("active");
-
-          } else if (data.trial_used) {
-            expiryBanner.textContent =
-              "Your free trial has expired. Choose a subscription to continue practising.";
-
-          } else {
-            expiryBanner.textContent =
-              "Your free 24-hour trial is available. Start practising any lab.";
-
-            expiryBanner.classList.add("available");
-          }
-        }
-
-        document.querySelectorAll(".lab-card[data-lab]").forEach(card => {
-
-          const lab = card.dataset.lab;
-          const access = data.labs[lab];
-
-          if (!access) return;
-
-          const practiceButton =
-            document.getElementById("practice-" + lab);
-
-          const enrollButton =
-            document.getElementById("enroll-" + lab);
-
-          const message =
-            document.getElementById("message-" + lab);
-
-          const status =
-            document.getElementById("status-" + lab);
-
-          const hasAccess = access.has_access === true;
-          const isPaidSubscription =
-            hasAccess && access.access_type !== "trial";
-
-          practiceButton.disabled = false;
-          practiceButton.classList.remove("expired");
-
-          if (isPaidSubscription) {
-            enrollButton.textContent = "Upgrade";
-          } else {
-            enrollButton.textContent = "Enroll";
-          }
-
-          if (hasAccess) {
-
-            practiceButton.textContent = "Start practising";
-
-            status.textContent =
-              access.access_type === "trial"
-                ? "Free trial active"
-                : "Subscription active";
-
-            if (access.expires_at) {
-              status.textContent +=
-                " · Expires " +
-                new Date(access.expires_at).toLocaleString();
-            }
-
-            message.textContent = "";
-            message.classList.remove("visible", "expired");
-
-          } else if (data.trial_used) {
-
-            practiceButton.textContent = "Trial expired";
-            practiceButton.disabled = true;
-            practiceButton.classList.add("expired");
-
-            message.textContent =
-              "Your free trial has expired. Enroll in a subscription plan to continue practising.";
-
-            message.classList.add("visible", "expired");
-            status.textContent = "";
-
-          } else {
-
-            practiceButton.textContent = "Practise freely for 1 day";
-
-            message.textContent =
-              "Get FREE access to all four labs for 24 hours.";
-
-            message.classList.add("visible");
-            message.classList.remove("expired");
-
-            status.textContent = "";
-
-          }
-
-        });
-
-        return data;
-      }
-
-
-      async function startFreeTrial() {
-
-        return await fetchJSON("/subscriptions/trial/start", {
+        const response = await fetch("/subscriptions/trial/start", {
           method: "POST",
+          credentials: "same-origin",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({})
         });
 
-      }
+        const data = await response.json();
 
-
-      async function handlePractice(button) {
-
-        const lab = button.dataset.lab;
-
-        if (button.disabled) return;
-
-        button.disabled = true;
-
-        try {
-
-          const status = await loadSubscriptionStatus();
-          const access = status.labs[lab];
-
-          if (access && access.has_access) {
-            window.location.href = "/" + encodeURIComponent(lab);
-            return;
-          }
-
-          if (status.trial_used) {
-            button.textContent = "Trial expired";
-            button.disabled = true;
-            return;
-          }
-
-          const confirmed = confirm(
-            "Start practising freely for 1 day?\n\n" +
-            "You will get access to all four labs:\n" +
-            "Linux, Jenkins, Bash and Ansible.\n\n" +
-            "Your free trial expires automatically after 24 hours.\n\n" +
-            "After your free trial expires, enroll in a subscription plan to continue learning."
+        if (!response.ok || data.success === false) {
+          throw new Error(
+            data.message || data.error || "Unable to activate free trial."
           );
-
-          if (!confirmed) return;
-
-          button.textContent = "Activating trial...";
-
-          const result = await startFreeTrial();
-
-          await loadSubscriptionStatus();
-
-          alert(
-            result.message ||
-            "Your free trial has been activated for 24 hours."
-          );
-
-          window.location.href = "/" + encodeURIComponent(lab);
-
-        } catch (error) {
-
-          alert(error.message);
-
-          button.disabled = false;
-
-          try {
-            await loadSubscriptionStatus();
-          } catch (refreshError) {
-            console.error(refreshError);
-          }
-
         }
 
+        closeSubscriptionPlans();
+        await loadSubscriptionStatus();
+      } catch (error) {
+        showSubscriptionMessage(error.message);
+        button.disabled = false;
+      }
+    }
+
+    async function purchasePlan(planDays) {
+      if (paymentInProgress) return;
+
+      const phone = getMobileNumber();
+      if (!phone) return;
+
+      paymentInProgress = true;
+
+      document.querySelectorAll(".plan-option").forEach(button => {
+        button.disabled = true;
+      });
+
+      showSubscriptionMessage("Creating your payment order...");
+
+      try {
+        const response = await fetch("/subscriptions/payment/create", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            plan_days: Number(planDays),
+            phone: phone
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.payment_session_id) {
+          throw new Error(
+            data.message || data.error || "Unable to create payment order."
+          );
+        }
+
+        const cashfree = Cashfree({
+          mode: data.cashfree_environment === "production"
+            ? "production"
+            : "sandbox"
+        });
+
+        showSubscriptionMessage("Redirecting to Cashfree...");
+
+        await cashfree.checkout({
+          paymentSessionId: data.payment_session_id,
+          redirectTarget: "_self"
+        });
+      } catch (error) {
+        showSubscriptionMessage(error.message);
+
+        document.querySelectorAll(".plan-option").forEach(button => {
+          button.disabled = false;
+        });
+      } finally {
+        paymentInProgress = false;
+      }
+    }
+
+    function formatExpiry(value) {
+      if (!value) return "";
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return value;
       }
 
+      return date.toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
 
-      document.querySelectorAll(".practice-button").forEach(button => {
+    async function loadSubscriptionStatus() {
+      const banner = document.getElementById("subscriptionExpiryBanner");
 
-        button.addEventListener("click", () => {
-          handlePractice(button);
+      try {
+        const response = await fetch("/subscriptions/status", {
+          credentials: "same-origin"
         });
 
-      });
+        if (!response.ok) return;
 
+        const data = await response.json();
+        subscriptionStatus = data;
 
-      document.querySelectorAll(".enroll-button").forEach(button => {
+        const trialActive = data.trial_active === true;
+        const trialExpiry = data.trial_expires_at;
 
-        button.addEventListener("click", () => {
-          openModal(button.dataset.lab);
-        });
-
-      });
-
-
-      submitButton.addEventListener("click", async () => {
-
-        if (!selectedLab) return;
-
-        clearError();
-
-        const selectedPlan = document.querySelector(
-          'input[name="plan_days"]:checked'
+        const labs = data.labs || {};
+        const paidLabSubscriptions = Object.entries(labs).filter(
+          ([, lab]) =>
+            lab.access_type === "subscription" &&
+            lab.has_access === true
         );
 
-        const phone = document.getElementById("customerPhone").value.trim();
+        const hasAnyLabAccess = Object.values(labs).some(
+          lab => lab.has_access === true
+        );
 
-        if (!selectedPlan) {
-          showError("Please select a subscription plan.");
-          return;
-        }
+        if (!banner) return;
 
-        if (!/^[6-9][0-9]{9}$/.test(phone)) {
-          showError("Please enter a valid 10-digit Indian mobile number.");
-          return;
-        }
+        banner.className = "subscription-expiry-banner";
 
-        submitButton.disabled = true;
-        submitButton.textContent = "Creating payment...";
+        if (trialActive) {
+          banner.classList.add("warning");
 
-        try {
-
-          const result = await fetchJSON(
-            "/subscriptions/payment/create",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({
-                plan_days: Number(selectedPlan.value),
-                phone: phone
-              })
-            }
-          );
-
-          if (!result.payment_session_id) {
-            throw new Error("Payment session was not returned by the server.");
+          if (trialExpiry) {
+            banner.textContent =
+              "Your 1-day free plan for all Learning Labs is active and will expire on " +
+              formatExpiry(trialExpiry) +
+              ". Upgrade to a paid plan to continue using all labs.";
+          } else {
+            banner.textContent =
+              "Your 1-day free plan for all Learning Labs is active. Upgrade to a paid plan before it expires to continue using all labs.";
           }
 
-          const cashfree = await Cashfree({
-            mode: result.cashfree_environment || cashfreeMode
-          });
-
-          await cashfree.checkout({
-            paymentSessionId: result.payment_session_id,
-            redirectTarget: "_self"
-          });
-
-        } catch (error) {
-
-          showError(error.message);
-
-          submitButton.disabled = false;
-          submitButton.textContent = "Continue to payment";
-
+          return;
         }
 
-      });
+        if (paidLabSubscriptions.length > 0) {
+          const paidExpiries = paidLabSubscriptions
+            .map(([slug, lab]) => ({
+              name: slug.charAt(0).toUpperCase() + slug.slice(1),
+              expiry: lab.expires_at
+            }))
+            .filter(item => item.expiry);
 
+          banner.classList.add("active");
 
-      async function initializeSubscriptions() {
+          if (paidExpiries.length > 0) {
+            const uniqueExpiries = [
+              ...new Set(paidExpiries.map(item => item.expiry))
+            ];
 
-        const params = new URLSearchParams(window.location.search);
-        const paymentStatus = params.get("payment");
+            if (uniqueExpiries.length === 1) {
+              banner.textContent =
+                "Your paid Learning Labs plan is active and expires on " +
+                formatExpiry(uniqueExpiries[0]) + ".";
+            } else {
+              banner.textContent =
+                "Your paid lab subscriptions: " +
+                paidExpiries
+                  .map(item => item.name + ": " + formatExpiry(item.expiry))
+                  .join(" | ");
+            }
+          } else {
+            banner.textContent =
+              "Your paid Learning Labs subscription is active.";
+          }
 
-        if (paymentStatus === "success") {
-
-          alert(
-            "Payment successful! Your subscription is active for all four labs."
-          );
-
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-
-        } else if (paymentStatus === "failed") {
-
-          alert(
-            "Payment could not be verified. Please check your payment status and try again."
-          );
-
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-
+          return;
         }
 
-        try {
-
-          await loadSubscriptionStatus();
-
-        } catch (error) {
-
-          console.error("Subscription initialization failed:", error);
-
-          document.querySelectorAll(".lab-access-message").forEach(message => {
-
-            message.textContent =
-              "Unable to load subscription information. Please refresh the page.";
-
-            message.classList.add("visible");
-
-          });
-
+        if (hasAnyLabAccess) {
+          banner.classList.add("active");
+          banner.textContent =
+            "Your Learning Labs access is active.";
+          return;
         }
 
+        if (data.trial_used === true) {
+          banner.classList.add("expired");
+          banner.textContent =
+            "Your 1-day free plan has expired. Upgrade to a paid plan to continue using all Learning Labs.";
+        } else {
+          banner.classList.add("warning");
+          banner.textContent =
+            "You do not have an active plan. Activate your 1-day free plan to get access to all Learning Labs, or choose a paid plan.";
+        }
+      } catch (error) {
+        console.error("Unable to load subscription status:", error);
       }
+    }
 
+    document
+      .getElementById("subscriptionModal")
+      .addEventListener("click", event => {
+        if (event.target.id === "subscriptionModal") {
+          closeSubscriptionPlans();
+        }
+      });
 
-      initializeSubscriptions();
+    document
+      .getElementById("homeBannerModal")
+      .addEventListener("click", event => {
+        if (event.target.id === "homeBannerModal") {
+          closeHomeBanner();
+        }
+      });
 
-    })();
+  document.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
 
+  if (params.get("subscription") === "required") {
+    sessionStorage.setItem("learningLabsBannerShown", "true");
+    closeHomeBanner();
+
+    await loadSubscriptionStatus();
+    openSubscriptionPlans();
+
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return;
+  }
+
+  openHomeBanner();
+  loadSubscriptionStatus();
+});
   </script>
-
   {% endif %}
-
-  <script>
-    (() => {
-      const toggle = document.getElementById("userMenuToggle");
-      const dropdown = document.getElementById("userDropdown");
-
-      if (!toggle || !dropdown) return;
-
-      toggle.addEventListener("click", event => {
-        event.stopPropagation();
-        const isOpen = dropdown.classList.toggle("open");
-        toggle.setAttribute("aria-expanded", String(isOpen));
-      });
-
-      document.addEventListener("click", event => {
-        if (!event.target.closest(".user-menu")) {
-          dropdown.classList.remove("open");
-          toggle.setAttribute("aria-expanded", "false");
-        }
-      });
-
-      document.addEventListener("keydown", event => {
-        if (event.key === "Escape") {
-          dropdown.classList.remove("open");
-          toggle.setAttribute("aria-expanded", "false");
-        }
-      });
-    })();
-  </script>
-
 </body>
 </html>

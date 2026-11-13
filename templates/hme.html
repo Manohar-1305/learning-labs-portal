@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -499,7 +500,33 @@
               {% endif %}
             </h3>
 
+            {% if slug == "ansible" %}
+            <p>
+              Get an Ansible controller and client with SSH already connected.
+              Write and run playbooks, automate tasks, and create your own
+              custom Ansible modules.
+            </p>
+            {% elif slug == "jenkins" %}
+            <p>
+              Get your own Jenkins server ready to use. Practise creating
+              jobs and pipelines, configure build steps, and automate
+              CI/CD workflows.
+            </p>
+            {% elif slug == "bash" %}
+            <p>
+              Get a dedicated Linux environment to practise Bash commands.
+              Write shell scripts, automate repetitive tasks, and build
+              your own command-line utilities.
+            </p>
+            {% elif slug == "linux" %}
+            <p>
+              Get a dedicated Linux environment to practise real-world
+              administration. Work with users, permissions, files,
+              processes, services, networking, and system commands.
+            </p>
+            {% else %}
             <p>{{ lab.description }}</p>
+            {% endif %}
           </div>
 
           <div class="lab-card-footer">
